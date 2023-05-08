@@ -13,7 +13,9 @@ import android.widget.Toast;
 import com.example.chatss.R;
 import com.example.chatss.adapter.RecentConversationsAdapter;
 import com.example.chatss.databinding.ActivityMainBinding;
+import com.example.chatss.listeners.ConversionListener;
 import com.example.chatss.models.ChatMessage;
+import com.example.chatss.models.User;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
 import com.google.firebase.firestore.DocumentChange;
@@ -32,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity implements ConversionListener {
 
     private ActivityMainBinding binding;
     private PreferenceManager preferenceManager;
@@ -55,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void init(){
         conversations = new ArrayList<>();
-        conversationsAdapter = new RecentConversationsAdapter(conversations);
+        conversationsAdapter = new RecentConversationsAdapter(conversations, this);
         binding.conversationRecyclerView.setAdapter(conversationsAdapter);
         database = FirebaseFirestore.getInstance();
     }
@@ -134,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateToke(String token) {
+        preferenceManager.putString(Constants.KEY_FCM_TOKEN,token);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         DocumentReference documentReference = database.collection(Constants.KEY_COLLECTION_USERS).document(preferenceManager.getString(Constants.KEY_USED_ID));
         documentReference.update(Constants.KEY_FCM_TOKEN, token)
@@ -156,5 +159,10 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e -> showToast("Unable to sign out"));
+    }
+    public void onConversionClicked(User user) {
+        Intent it = new Intent(getApplicationContext(),ChatActivity.class);
+        it.putExtra(Constants.KEY_USER,user);
+        startActivity(it);
     }
 }
