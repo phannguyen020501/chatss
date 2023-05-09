@@ -1,7 +1,11 @@
 package com.example.chatss.adapter;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -85,8 +89,17 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
 
         void setData(ChatMessage chatMessage){
-            binding.textMessage.setText(chatMessage.message);
-            binding.textDateTime.setText(chatMessage.dateTime);
+            if(chatMessage!=null){
+                if(chatMessage.type.equals("text")){
+                    binding.textMessage.setText(chatMessage.message);
+                    binding.textDateTime.setText(chatMessage.dateTime);
+                } else if(chatMessage.type.equals("image")){
+                    binding.textMessage.setVisibility(View.GONE);
+                    binding.imgChat.setVisibility(View.VISIBLE);
+                    binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
+                    binding.textDateTime.setText(chatMessage.dateTime);
+                }
+            }
         }
     }
 
@@ -100,11 +113,25 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
 
         void setData(ChatMessage chatMessage, Bitmap receiverProfileImage){
-            binding.textMessage.setText(chatMessage.message);
             binding.textDateTime.setText(chatMessage.dateTime);
             if(receiverProfileImage!=null){
                 binding.imageProfile.setImageBitmap(receiverProfileImage);
             }
+            if(chatMessage.type.equals("text")){
+                binding.textMessage.setText(chatMessage.message);
+            } else if(chatMessage.type.equals("image")){
+                binding.textMessage.setVisibility(View.GONE);
+                binding.imgChat.setVisibility(View.VISIBLE);
+                binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
+            }
+        }
+    }
+    private static Bitmap getBitmapFromEncodedString(String encodedImage){
+        if(encodedImage != null){
+            byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+        } else {
+            return null;
         }
     }
 }

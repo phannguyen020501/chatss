@@ -13,25 +13,39 @@
         android:background="@drawable/background_image"
         android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="@+id/textMessage"
+        app:layout_constraintBottom_toBottomOf="@+id/chat_content"
         app:riv_oval="true"/>
 
-    <TextView
-        android:id="@+id/textMessage"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_4sdp"
-        android:paddingTop="@dimen/_8sdp"
-        android:paddingBottom="@dimen/_8sdp"
-        android:paddingStart="@dimen/_12sdp"
-        android:paddingEnd="@dimen/_12sdp"
-        app:layout_constraintWidth_max="wrap"
-        android:background="@drawable/background_received_message"
-        android:textColor="@color/white"
-        android:textSize="@dimen/_13ssp"
+        android:id="@+id/chat_content"
         app:layout_constraintStart_toEndOf="@id/imageProfile"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.75"/>
+        app:layout_constraintTop_toTopOf="parent">
+        <TextView
+            android:id="@+id/textMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_4sdp"
+            android:paddingTop="@dimen/_8sdp"
+            android:paddingBottom="@dimen/_8sdp"
+            android:paddingStart="@dimen/_12sdp"
+            android:paddingEnd="@dimen/_12sdp"
+            app:layout_constraintWidth_max="wrap"
+            android:background="@drawable/background_received_message"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_13ssp"
+            app:layout_constraintStart_toEndOf="@id/imageProfile"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.75"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/primary"
+            android:layout_marginStart="@dimen/_4sdp"
+            android:id="@+id/imgChat"
+            android:visibility="visible"/>
+    </LinearLayout>
     <TextView
         android:id="@+id/textDateTime"
         android:layout_width="0dp"
@@ -39,7 +53,7 @@
         android:layout_marginTop="@dimen/_4sdp"
         android:textColor="@color/secondary_text"
         android:textSize="@dimen/_8ssp"
-        app:layout_constraintStart_toStartOf="@id/textMessage"
-        app:layout_constraintTop_toBottomOf="@id/textMessage"/>
+        app:layout_constraintStart_toStartOf="@id/chat_content"
+        app:layout_constraintTop_toBottomOf="@id/chat_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
