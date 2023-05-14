@@ -4,12 +4,11 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="@dimen/_8sdp">
-    
+
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/imageProfile"
         android:layout_width="@dimen/_35sdp"
         android:layout_height="@dimen/_35sdp"
-        android:src="@drawable/chatnhom"
         android:background="@drawable/background_image"
         android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="parent"
@@ -29,7 +28,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/_8sdp"
-        android:layout_marginEnd="@dimen/_8sdp"
+        android:layout_marginEnd="50dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/primary_text"
@@ -43,7 +42,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/_8sdp"
-        android:layout_marginEnd="@dimen/_8sdp"
+        android:layout_marginEnd="50dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/secondary_text"
@@ -51,5 +50,10 @@
         app:layout_constraintTop_toBottomOf="@id/viewSupporter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/viewSupporter"/>
-
+    <CheckBox android:id="@+id/checkbox_meat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

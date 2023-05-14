@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
@@ -35,7 +36,8 @@ import java.util.List;
 
 
 public class MainActivity extends BaseActivity implements ConversionListener {
-
+    private float x1,x2;
+    static final int MIN_DISTANCE = 150;
     private ActivityMainBinding binding;
     private PreferenceManager preferenceManager;
     private List<ChatMessage> conversations;
@@ -164,5 +166,44 @@ public class MainActivity extends BaseActivity implements ConversionListener {
         Intent it = new Intent(getApplicationContext(),ChatActivity.class);
         it.putExtra(Constants.KEY_USER,user);
         startActivity(it);
+    }
+    @Override
+    public boolean onTouchEvent(MotionEvent event)
+    {
+        switch(event.getAction())
+        {
+            case MotionEvent.ACTION_DOWN:
+                x1 = event.getX();
+                break;
+            case MotionEvent.ACTION_UP:
+                x2 = event.getX();
+                float deltaX = x2 - x1;
+
+                if (Math.abs(deltaX) > MIN_DISTANCE)
+                {
+                    // Left to Right swipe action
+                    if (x2 > x1)
+                    {
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    // Right to left swipe action
+                    else
+                    {
+                        Intent intent = new Intent(getApplicationContext(), ChatGroupMainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+
+                }
+                else
+                {
+                    // consider as something else - a screen tap for example
+                }
+                break;
+        }
+        return super.onTouchEvent(event);
     }
 }
