@@ -42,6 +42,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@color/primary"
+            android:minWidth="@dimen/_120sdp"
+            android:maxHeight="@dimen/_320sdp"
             android:layout_marginStart="@dimen/_4sdp"
             android:id="@+id/imgChat"
             android:visibility="visible"/>

@@ -6,14 +6,19 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.Preference;
 import android.provider.MediaStore;
 import android.util.Base64;
@@ -27,6 +32,7 @@ import android.widget.Toast;
 import com.example.chatss.R;
 import com.example.chatss.adapter.ChatAdapter;
 import com.example.chatss.databinding.ActivityChatBinding;
+import com.example.chatss.listeners.DownloadImageListener;
 import com.example.chatss.models.ChatMessage;
 import com.example.chatss.models.User;
 import com.example.chatss.network.ApiClient;
@@ -52,7 +58,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,8 +77,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ChatActivity extends BaseActivity {
+public class ChatActivity extends BaseActivity implements DownloadImageListener {
 
+    private static final int REQUEST_PERMISSION_CODE = 10;
     private ActivityChatBinding binding;
     private User receiverUser;
     private List<ChatMessage> chatMessages;
@@ -80,6 +90,8 @@ public class ChatActivity extends BaseActivity {
     private Boolean isReceiverAvailable = false;
 
     private String encodedImage;
+
+    private Bitmap bitmapImg ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +111,8 @@ public class ChatActivity extends BaseActivity {
         chatAdapter = new ChatAdapter(
                 chatMessages,
                 preferenceManager.getString(Constants.KEY_USED_ID),
-                getBitmapFromEncodedString(receiverUser.image)
+                getBitmapFromEncodedString(receiverUser.image),
+                ChatActivity.this
         );
         binding.chatRecyclerView.setAdapter(chatAdapter);
         database = FirebaseFirestore.getInstance();
@@ -420,4 +433,89 @@ public class ChatActivity extends BaseActivity {
         super.onPostResume();
         listenerAvailabilityOfReceiver();
     }
+
+    @Override
+    public void onItemClick(ChatMessage chatMessage) {
+        LayoutInflater inflater = LayoutInflater.from(ChatActivity.this);
+        View view = inflater.inflate(R.layout.send_image_in_chat,null);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(ChatActivity.this)
+                .setView(view)
+                .create();
+
+        alertDialog.show();
+
+        ImageView imageView = view.findViewById(R.id.preview_image);
+        Button uploadbtn = view.findViewById(R.id.preview_upload_img_btn);
+
+        uploadbtn.setText("Download");
+        bitmapImg = getBitmapFromEncodedString(chatMessage.message);
+        imageView.setImageBitmap(bitmapImg);
+
+        uploadbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                checkPermission();
+                alertDialog.dismiss();
+            }
+        });
+
+
+    }
+
+    private void checkPermission() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+                String [] permission = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                requestPermissions(permission, REQUEST_PERMISSION_CODE);
+            } else {
+                startDownload();
+            }
+        } else {
+            startDownload();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startDownload();
+            } else {
+                showToash("Permission Denied");
+            }
+        }
+    }
+
+    private void startDownload() {
+        saveImage(bitmapImg, String.valueOf(System.currentTimeMillis()));
+    }
+
+    private void saveImage(Bitmap finalBitmap, String image_name) {
+
+        String root = Environment.getExternalStorageDirectory().getAbsolutePath().toString() + "/Download/";
+        File myDir = new File(root);
+        myDir.mkdirs();
+        String fname = "Image-" + image_name+ ".jpg";
+        File file = new File(myDir, fname);
+        if (file.exists()) file.delete();
+        showToash("Download successful");
+
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+//    public Uri getImageUri(Context inContext, Bitmap inImage) {
+//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+//        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+//        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+//        return Uri.parse(path);
+//    }
 }

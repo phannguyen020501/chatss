@@ -1,26 +1,38 @@
 package com.example.chatss.adapter;
 
+import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chatss.R;
+import com.example.chatss.activities.ChatActivity;
 import com.example.chatss.databinding.ItemContainerReceivedMessageBinding;
 import com.example.chatss.databinding.ItemContainerSentMessageBinding;
+import com.example.chatss.listeners.DownloadImageListener;
+import com.example.chatss.listeners.UserListener;
 import com.example.chatss.models.ChatMessage;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.List;
 
 public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private  final List<ChatMessage> chatMessages;
     private final String senderId;
     private Bitmap receiverProfileImage;
+
+    private final DownloadImageListener downloadImageListener;
 
     public static final int VIEW_TYPE_SENT = 1;
     public static final int VIEW_TYPE_RECEIVED = 2;
@@ -29,10 +41,11 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
         receiverProfileImage = bitmap;
     }
 
-    public ChatAdapter(List<ChatMessage> chatMessages, String senderId, Bitmap receiverProfileImage) {
+    public ChatAdapter(List<ChatMessage> chatMessages, String senderId, Bitmap receiverProfileImage, DownloadImageListener downloadImageListener) {
         this.chatMessages = chatMessages;
         this.senderId = senderId;
         this.receiverProfileImage = receiverProfileImage;
+        this.downloadImageListener = downloadImageListener;
     }
 
     @NonNull
@@ -80,7 +93,7 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    static class SentMessageViewHolder extends RecyclerView.ViewHolder{
+    class SentMessageViewHolder extends RecyclerView.ViewHolder{
         private final ItemContainerSentMessageBinding binding;
 
         public SentMessageViewHolder(ItemContainerSentMessageBinding itemContainerSentMessageBinding) {
@@ -98,12 +111,16 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
                     binding.imgChat.setVisibility(View.VISIBLE);
                     binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
                     binding.textDateTime.setText(chatMessage.dateTime);
+                    binding.imgChat.setOnClickListener(view -> {
+                        downloadImageListener.onItemClick(chatMessage);
+                    });
                 }
+
             }
         }
     }
 
-    static class ReceivedMessageViewHolder extends RecyclerView.ViewHolder{
+    class ReceivedMessageViewHolder extends RecyclerView.ViewHolder{
         private final ItemContainerReceivedMessageBinding binding;
 
         public ReceivedMessageViewHolder(ItemContainerReceivedMessageBinding itemContainerReceivedMessageBinding) {
@@ -123,6 +140,9 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 binding.textMessage.setVisibility(View.GONE);
                 binding.imgChat.setVisibility(View.VISIBLE);
                 binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
+                binding.imgChat.setOnClickListener(view -> {
+                    downloadImageListener.onItemClick(chatMessage);
+                });
             }
         }
     }
