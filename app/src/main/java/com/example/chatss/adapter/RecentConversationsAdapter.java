@@ -2,6 +2,8 @@ package com.example.chatss.adapter;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.provider.CalendarContract;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -9,17 +11,26 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chatss.activities.ChatActivity;
 import com.example.chatss.databinding.ItemContainerRecentConversionBinding;
+import com.example.chatss.listeners.ConversionListener;
 import com.example.chatss.models.ChatMessage;
+import com.example.chatss.models.User;
+import com.example.chatss.utilities.Constants;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
+import java.util.Objects;
 
 public class RecentConversationsAdapter extends RecyclerView.Adapter<RecentConversationsAdapter.ConversiongViewHolder> {
 
     private final List<ChatMessage> chatMessages;
+    private final ConversionListener conversionListener;
 
-    public RecentConversationsAdapter(List<ChatMessage> chatMessages) {
+    public RecentConversationsAdapter(List<ChatMessage> chatMessages, ConversionListener conversionListener) {
         this.chatMessages = chatMessages;
+        this.conversionListener = conversionListener;
     }
 
     @NonNull
@@ -55,9 +66,24 @@ public class RecentConversationsAdapter extends RecyclerView.Adapter<RecentConve
         }
 
         void setData(ChatMessage chatMessage) {
+//            if (chatMessage.avaibility == 1){
+//                binding.imageStatus.setColorFilter(Color.rgb(0,255,0));
+//            }else {
+//                binding.imageStatus.setColorFilter(Color.rgb(255,165,0));
+//            }
+
+            binding.setAvailable(chatMessage.avaibility);
+
             binding.imageProfile.setImageBitmap(getConversionImage(chatMessage.conversionImage));
             binding.textName.setText(chatMessage.conversionName);
             binding.textRecentMessage.setText(chatMessage.message);
+            binding.getRoot().setOnClickListener(view -> {
+                User user = new User();
+                user.id = chatMessage.conversionId;
+                user.name = chatMessage.conversionName;
+                user.image = chatMessage.conversionImage;
+                conversionListener.onConversionClicked(user);
+            });
         }
     }
 
@@ -65,4 +91,6 @@ public class RecentConversationsAdapter extends RecyclerView.Adapter<RecentConve
         byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(bytes,0, bytes.length);
     }
+
+
 }

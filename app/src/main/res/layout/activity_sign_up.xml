@@ -29,26 +29,35 @@
             android:id="@+id/layoutImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_20sdp">
+            android:layout_marginTop="@dimen/_15sdp"
+            >
 
-            <ImageView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/imageProfile"
                 android:layout_width="@dimen/_80sdp"
                 android:layout_height="@dimen/_80sdp"
-                android:background="@drawable/background_image"
                 android:scaleType="centerCrop"
+                android:src="@drawable/background_image"
+                app:shapeAppearanceOverlay="@style/circular"
+                android:elevation="@dimen/_5sdp"
+                android:padding="@dimen/_5sdp"
                 app:riv_oval="true"
                 />
+
             <TextView
                 android:id="@+id/textAddImage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="add image"
+                android:elevation="@dimen/_6sdp"
                 android:textColor="@color/secondary_text"
-                android:textSize="@dimen/_10sdp"
                 />
+
         </FrameLayout>
+
+
+
 
         <EditText
             android:id="@+id/inputName"

@@ -84,6 +84,25 @@ public class SignInActivity extends AppCompatActivity {
                         preferenceManager.putString(Constants.KEY_USED_ID, documentSnapshot.getId());
                         preferenceManager.putString(Constants.KEY_NAME, documentSnapshot.getString(Constants.KEY_NAME));
                         preferenceManager.putString(Constants.KEY_IMAGE, documentSnapshot.getString(Constants.KEY_IMAGE));
+                        preferenceManager.putString(Constants.KEY_EMAIL, documentSnapshot.getString(Constants.KEY_EMAIL));
+                        if (documentSnapshot.getString(Constants.KEY_PHONE) != null){
+                            preferenceManager.putString(Constants.KEY_PHONE, documentSnapshot.getString(Constants.KEY_PHONE));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_CITY) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_CITY, documentSnapshot.getString(Constants.KEY_ADDRESS_CITY));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_PROVINCE) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_PROVINCE, documentSnapshot.getString(Constants.KEY_ADDRESS_PROVINCE));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_TOWN) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_TOWN, documentSnapshot.getString(Constants.KEY_ADDRESS_TOWN));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_STREET) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_STREET, documentSnapshot.getString(Constants.KEY_ADDRESS_STREET));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_NUMBER) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_NUMBER, documentSnapshot.getString(Constants.KEY_ADDRESS_NUMBER));
+                        }
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
