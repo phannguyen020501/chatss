@@ -1,30 +1,17 @@
 package com.example.chatss.adapter;
 
-import android.app.AlertDialog;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.example.chatss.R;
-import com.example.chatss.activities.ChatActivity;
 import com.example.chatss.databinding.ItemContainerReceivedMessageBinding;
 import com.example.chatss.databinding.ItemContainerSentMessageBinding;
 import com.example.chatss.listeners.DownloadImageListener;
-import com.example.chatss.listeners.UserListener;
 import com.example.chatss.models.ChatMessage;
-
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import com.squareup.picasso.Picasso;
 import java.util.List;
 
 public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -103,17 +90,20 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         void setData(ChatMessage chatMessage){
             if(chatMessage!=null){
-                if(chatMessage.type.equals("text")){
-                    binding.textMessage.setText(chatMessage.message);
-                    binding.textDateTime.setText(chatMessage.dateTime);
-                } else if(chatMessage.type.equals("image")){
+                if(chatMessage.type.equals("image")){
                     binding.textMessage.setVisibility(View.GONE);
                     binding.imgChat.setVisibility(View.VISIBLE);
-                    binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
+                    Picasso.get().load(Uri.parse(chatMessage.message)).into(binding.imgChat);
                     binding.textDateTime.setText(chatMessage.dateTime);
                     binding.imgChat.setOnClickListener(view -> {
                         downloadImageListener.onItemClick(chatMessage);
                     });
+                }
+                else {
+                    binding.textMessage.setVisibility(View.VISIBLE);
+                    binding.imgChat.setVisibility(View.GONE);
+                    binding.textMessage.setText(chatMessage.message);
+                    binding.textDateTime.setText(chatMessage.dateTime);
                 }
 
             }
@@ -134,24 +124,19 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
             if(receiverProfileImage!=null){
                 binding.imageProfile.setImageBitmap(receiverProfileImage);
             }
-            if(chatMessage.type.equals("text")){
-                binding.textMessage.setText(chatMessage.message);
-            } else if(chatMessage.type.equals("image")){
+            if(chatMessage.type.equals("image")){
                 binding.textMessage.setVisibility(View.GONE);
                 binding.imgChat.setVisibility(View.VISIBLE);
-                binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
+                Picasso.get().load(Uri.parse(chatMessage.message)).into(binding.imgChat);
                 binding.imgChat.setOnClickListener(view -> {
                     downloadImageListener.onItemClick(chatMessage);
                 });
             }
-        }
-    }
-    private static Bitmap getBitmapFromEncodedString(String encodedImage){
-        if(encodedImage != null){
-            byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
-            return BitmapFactory.decodeByteArray(bytes,0,bytes.length);
-        } else {
-            return null;
+            else {
+                binding.textMessage.setVisibility(View.VISIBLE);
+                binding.imgChat.setVisibility(View.GONE);
+                binding.textMessage.setText(chatMessage.message);
+            }
         }
     }
 }

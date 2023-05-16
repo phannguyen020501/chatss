@@ -31,10 +31,12 @@
         <ImageView
             android:id="@+id/imgChat"
             android:layout_width="wrap_content"
+            android:maxWidth="@dimen/_120sdp"
             android:layout_height="wrap_content"
-            android:background="@color/primary"
-            android:minWidth="@dimen/_120sdp"
-            android:maxHeight="@dimen/_320sdp"
+            android:adjustViewBounds="true"
+            android:layout_centerInParent="true"
+
+            android:background="@color/white"
             android:layout_alignParentRight="true"
             android:visibility="visible"/>
 

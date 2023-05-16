@@ -41,6 +41,7 @@ import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
@@ -48,6 +49,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
@@ -89,9 +91,11 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener 
     private String conversionId = null;
     private Boolean isReceiverAvailable = false;
 
-    private String encodedImage;
+    private String encodedImage, imgUrl;
 
     private Bitmap bitmapImg ;
+
+    private Uri imgUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -322,19 +326,15 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener 
 
                     if(result.getData() != null){
                         Uri imageUri = result.getData().getData();
-                        try {
-                            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                            imageView.setImageBitmap(bitmap);
-                            encodedImage = encodeImage(bitmap);
 
-                            uploadbtn.setOnClickListener(view1 -> {
+                        imgUrl = imageUri.toString();
+
+                        Picasso.get().load(imageUri).into(imageView);
+
+                        uploadbtn.setOnClickListener(view1 -> {
                                 sendImage();
                                 alertDialog.dismiss();
                             });
-                        }catch (FileNotFoundException e ){
-                            e.printStackTrace();
-                        }
                     }
                     alertDialog.show();
 
@@ -343,42 +343,49 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener 
     );
 
     private void sendImage() {
-        HashMap<String , Object> message = new HashMap<>();
-        message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
-        message.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
-        message.put(Constants.KEY_MESSAGE, encodedImage);
-        message.put(Constants.KEY_TIMESTAMP, new Date());
-        message.put(Constants.TYPE_MESSAGES_SEND, "image");
-        database.collection(Constants.KEY_COLLECTION_CHAT).add(message);
-        if (conversionId != null){
-            updateConversion("*Hình ảnh");
-        }else {
-            HashMap<String, Object> conversion = new HashMap<>();
-            conversion.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
-            conversion.put(Constants.KEY_SENDER_NAME, preferenceManager.getString(Constants.KEY_NAME));
-            conversion.put(Constants.KEY_SENDER_IMAGE, preferenceManager.getString(Constants.KEY_IMAGE));
-            conversion.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
-            conversion.put(Constants.KEY_RECEIVER_NAME, receiverUser.name);
-            conversion.put(Constants.KEY_RECEIVER_IMAGE, receiverUser.image);
-            conversion.put(Constants.KEY_LAST_MESSAGE, "*Hình ảnh");
-            conversion.put(Constants.KEY_TIMESTAMP, new Date());
-            addConversion(conversion);
-        }
 
-    }
+        String filepath = "ChatImages/" +  System.currentTimeMillis();
 
-    private String encodeImage(Bitmap bitmap){
-        int previewWidth = 150;
-        int previewHeight = bitmap.getHeight()*previewWidth/bitmap.getWidth();
-        Bitmap previewBitmap = Bitmap.createScaledBitmap(bitmap, previewWidth, previewHeight, false);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        previewBitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
-        byte[] bytes = byteArrayOutputStream.toByteArray();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return java.util.Base64.getEncoder().encodeToString(bytes);
-        }else{
-            return null;
-        }
+        StorageReference reference = FirebaseStorage.getInstance().getReference(filepath);
+        reference.putFile(Uri.parse(imgUrl)).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Task<Uri> task = taskSnapshot.getMetadata().getReference().getDownloadUrl();
+
+                task.addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+
+                        imgUrl = uri.toString();
+
+                        HashMap<String , Object> message = new HashMap<>();
+                        message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
+                        message.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
+                        message.put(Constants.KEY_MESSAGE, imgUrl);
+                        message.put(Constants.KEY_TIMESTAMP, new Date());
+                        message.put(Constants.TYPE_MESSAGES_SEND, "image");
+                        database.collection(Constants.KEY_COLLECTION_CHAT).add(message);
+
+                        if (conversionId != null){
+                            updateConversion("*Hình ảnh");
+                        }else {
+                            HashMap<String, Object> conversion = new HashMap<>();
+                            conversion.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
+                            conversion.put(Constants.KEY_SENDER_NAME, preferenceManager.getString(Constants.KEY_NAME));
+                            conversion.put(Constants.KEY_SENDER_IMAGE, preferenceManager.getString(Constants.KEY_IMAGE));
+                            conversion.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
+                            conversion.put(Constants.KEY_RECEIVER_NAME, receiverUser.name);
+                            conversion.put(Constants.KEY_RECEIVER_IMAGE, receiverUser.image);
+                            conversion.put(Constants.KEY_LAST_MESSAGE, "*Hình ảnh");
+                            conversion.put(Constants.KEY_TIMESTAMP, new Date());
+                            addConversion(conversion);
+                        }
+                    }
+                });
+
+            }
+        });
+
     }
 
     private String getReadableDateTime(Date date){
@@ -449,8 +456,9 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener 
         Button uploadbtn = view.findViewById(R.id.preview_upload_img_btn);
 
         uploadbtn.setText("Download");
-        bitmapImg = getBitmapFromEncodedString(chatMessage.message);
-        imageView.setImageBitmap(bitmapImg);
+        imgUri = Uri.parse(chatMessage.message);
+
+        Picasso.get().load(imgUri).into(imageView);
 
         uploadbtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -489,33 +497,20 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener 
     }
 
     private void startDownload() {
-        saveImage(bitmapImg, String.valueOf(System.currentTimeMillis()));
-    }
 
-    private void saveImage(Bitmap finalBitmap, String image_name) {
+        DownloadManager.Request request = new DownloadManager.Request(imgUri);
+        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+        request.setTitle("Download");
+        request.setDescription("Dowmload file...");
 
-        String root = Environment.getExternalStorageDirectory().getAbsolutePath().toString() + "/Download/";
-        File myDir = new File(root);
-        myDir.mkdirs();
-        String fname = "Image-" + image_name+ ".jpg";
-        File file = new File(myDir, fname);
-        if (file.exists()) file.delete();
-        showToash("Download successful");
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, String.valueOf(System.currentTimeMillis()));
 
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            out.flush();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        if(downloadManager != null){
+            downloadManager.enqueue(request);
+            showToash("Download successful");
         }
     }
 
-//    public Uri getImageUri(Context inContext, Bitmap inImage) {
-//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-//        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
-//        return Uri.parse(path);
-//    }
 }

@@ -6,27 +6,33 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center">
 
-    <ImageView
-        android:id="@+id/preview_image"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:scaleType="fitXY" />
-
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:layout_gravity="center">
+
+        <ImageView
+            android:id="@+id/preview_image"
+            android:layout_width="wrap_content"
+            android:maxWidth="@dimen/_220sdp"
+            android:maxHeight="@dimen/_340sdp"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/_30sdp"
+            />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:text="Upload"
             android:background="@color/primary"
             android:id="@+id/preview_upload_img_btn"
             android:layout_margin="2dp"
             android:layout_weight="1"/>
-
 
     </LinearLayout>
 
