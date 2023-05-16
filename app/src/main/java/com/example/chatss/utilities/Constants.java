@@ -1,10 +1,22 @@
 package com.example.chatss.utilities;
 
+import com.example.chatss.models.User;
+import com.example.chatss.models.UserGroup;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import android.app.Activity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
 import java.util.HashMap;
+
+import com.example.chatss.models.UserGroup;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Constants {
     public static final String KEY_COLLECTION_USERS = "users";
@@ -23,6 +35,7 @@ public class Constants {
     public static final String KEY_IMAGE = "image";
     public static final String KEY_FCM_TOKEN = "fcmToken";
     public static final String KEY_USER = "user";
+    public static final String KEY_ROOM = "room";
     public static final String KEY_COLLECTION_CHAT = "chat";
     public static final String KEY_SENDER_ID = "senderId";
     public static final String KEY_RECEIVER_ID = "receiverId";
@@ -39,7 +52,8 @@ public class Constants {
     public static final String REMOTE_MSG_CONTENT_TYPE = "Content-type";
 
     public static final String REMOTE_MSG_DATA = "data";
-
+    public static final String TYPE_MESSAGES_SEND = "type";
+    public static final List<UserGroup> userGroups = new ArrayList<>();
     public static final String REMOTE_MSG_REGISTRATION_IDS = "registration_ids";
 
     public static HashMap<String, String> remotoMsgHeaders = null;

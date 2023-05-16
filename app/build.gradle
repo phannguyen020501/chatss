@@ -23,8 +23,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -33,8 +31,6 @@ android {
         viewBinding true
         dataBinding true
     }
-
-
 }
 
 dependencies {
@@ -67,5 +63,5 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
 
     implementation 'com.github.dhaval2404:imagepicker:2.1'
-
+    implementation 'com.squareup.picasso:picasso:2.71828'
 }

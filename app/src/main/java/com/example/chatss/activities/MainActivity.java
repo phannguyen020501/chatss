@@ -1,6 +1,6 @@
 package com.example.chatss.activities;
 
-
+import androidx.appcompat.app.AppCompatActivity;
 
 
 import android.Manifest;
@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
@@ -52,8 +53,9 @@ import java.util.Objects;
 
 
 public class MainActivity extends BaseActivity implements ConversionListener {
-
+    private float x1,x2;
     public static final int MY_REQUEST_NOTI_CODE = 0;
+    static final int MIN_DISTANCE = 150;
     private ActivityMainBinding binding;
     private PreferenceManager preferenceManager;
     private List<ChatMessage> conversations;
@@ -188,6 +190,7 @@ public class MainActivity extends BaseActivity implements ConversionListener {
         database.collection(Constants.KEY_COLLECTION_CONVERSATIONS)
                 .whereEqualTo(Constants.KEY_RECEIVER_ID, preferenceManager.getString(Constants.KEY_USED_ID))
                 .addSnapshotListener(eventListener);
+
     }
 
     private  final EventListener<QuerySnapshot> eventListener = (value, error) -> {
@@ -216,7 +219,6 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                     }
                     chatMessage.message = documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE);
                     chatMessage.dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
-
                     conversations.add(chatMessage);
                 }else if (documentChange.getType() == DocumentChange.Type.MODIFIED){
                     for (int i = 0; i < conversations.size(); i++){
@@ -289,13 +291,48 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                 })
                 .addOnFailureListener(e -> showToast("Unable to sign out"));
     }
-
-    @Override
     public void onConversionClicked(User user) {
-        Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-        intent.putExtra(Constants.KEY_USER, user);
-        startActivity(intent);
+        Intent it = new Intent(getApplicationContext(),ChatActivity.class);
+        it.putExtra(Constants.KEY_USER,user);
+        startActivity(it);
     }
+    @Override
+    public boolean onTouchEvent(MotionEvent event)
+    {
+        switch(event.getAction())
+        {
+            case MotionEvent.ACTION_DOWN:
+                x1 = event.getX();
+                break;
+            case MotionEvent.ACTION_UP:
+                x2 = event.getX();
+                float deltaX = x2 - x1;
 
+                if (Math.abs(deltaX) > MIN_DISTANCE)
+                {
+                    // Left to Right swipe action
+                    if (x2 > x1)
+                    {
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
 
+                    // Right to left swipe action
+                    else
+                    {
+                        Intent intent = new Intent(getApplicationContext(), ChatGroupMainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+
+                }
+                else
+                {
+                    // consider as something else - a screen tap for example
+                }
+                break;
+        }
+        return super.onTouchEvent(event);
+    }
 }
