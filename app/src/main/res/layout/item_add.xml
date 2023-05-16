@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView
-    android:id="@+id/container"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -62,6 +61,12 @@
                     android:src="@drawable/ic_mode_edit_blue"
                     android:layout_width="35dp"
                     android:layout_height="35dp"/>
+                <ImageView
+                    android:id="@+id/ic_hide"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_remove"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"/>
             </LinearLayout>
 
 
@@ -100,8 +105,7 @@
                     android:textAlignment="textStart"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    card_view:ignore="RtlCompat"
-                    android:visibility="gone"/>
+                    card_view:ignore="RtlCompat"/>
                 <TextView
                     android:id="@+id/text_address_town"
                     android:text="Town"
@@ -111,8 +115,7 @@
                     android:textAlignment="textStart"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    card_view:ignore="RtlCompat"
-                    android:visibility="gone"/>
+                    card_view:ignore="RtlCompat"/>
                 <TextView
                     android:id="@+id/text_address_street"
                     android:text="Street"
@@ -122,8 +125,7 @@
                     android:textAlignment="textStart"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    card_view:ignore="RtlCompat"
-                    android:visibility="gone"/>
+                    card_view:ignore="RtlCompat"/>
                 <TextView
                     android:id="@+id/text_address_number"
                     android:text="Number"
@@ -133,8 +135,7 @@
                     android:textAlignment="textStart"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    card_view:ignore="RtlCompat"
-                    android:visibility="gone"/>
+                    card_view:ignore="RtlCompat"/>
 
 
             </LinearLayout>
@@ -142,7 +143,105 @@
 
 
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/container_edit_addres"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <EditText
+                android:id="@+id/edit_text_city"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:layout_marginStart="25dp"
+                android:layout_marginBottom="15dp"
+                android:layout_marginEnd="25dp"
+                android:imeOptions="actionDone"
+                android:importantForAutofill="no"
+                android:inputType="textEmailAddress"
+                android:hint="City"
+                android:textSize="17sp"
+                />
+            <EditText
+                android:id="@+id/edit_text_province"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="25dp"
+                android:layout_marginBottom="15dp"
+                android:layout_marginEnd="25dp"
+                android:imeOptions="actionDone"
+                android:importantForAutofill="no"
+                android:inputType="textEmailAddress"
+                android:hint="Province"
+                android:textSize="17sp"
+                />
+            <EditText
+                android:id="@+id/edit_text_town"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="25dp"
+                android:layout_marginBottom="15dp"
+                android:layout_marginEnd="25dp"
+                android:imeOptions="actionDone"
+                android:importantForAutofill="no"
+                android:inputType="textEmailAddress"
+                android:hint="Town"
+                android:textSize="17sp"
+                />
+            <EditText
+                android:id="@+id/edit_text_street"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="25dp"
+                android:layout_marginBottom="15dp"
+                android:layout_marginEnd="25dp"
+                android:imeOptions="actionDone"
+                android:importantForAutofill="no"
+                android:inputType="textEmailAddress"
+                android:hint="Street"
+                android:textSize="17sp"
+                />
+            <EditText
+                android:id="@+id/edit_text_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="25dp"
+                android:layout_marginBottom="15dp"
+                android:layout_marginEnd="25dp"
+                android:imeOptions="actionDone"
+                android:importantForAutofill="no"
+                android:inputType="textEmailAddress"
+                android:hint="No."
+                android:textSize="17sp"
+                />
+        </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/container_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:orientation="horizontal"
+            android:layout_marginBottom="5dp"
+            android:visibility="gone">
+            <Button
+                android:id="@+id/btn_OK"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:text="OK"
+                />
+            <Button
+                android:id="@+id/btn_Cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:backgroundTint="@color/red"
+                android:text="Cancel"
+                />
+
+        </LinearLayout>
 
 
     </LinearLayout>

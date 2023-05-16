@@ -2,6 +2,7 @@ package com.example.chatss.activities;
 
 import static com.example.chatss.activities.SignUpActivity.encodeImage;
 import static com.example.chatss.firebase.MessagingService.channelId;
+import static com.example.chatss.utilities.Constants.hideSoftKeyboard;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,9 +21,13 @@ import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Base64;
 import android.util.Patterns;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.chatss.R;
@@ -38,6 +43,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.HashMap;
 
 
 public class ProfileActivity extends BaseActivity {
@@ -54,6 +60,8 @@ public class ProfileActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        setupUI(binding.profileActivityLayout);
 
         preferenceManager = new PreferenceManager((getApplicationContext()));
         db = FirebaseFirestore.getInstance();
@@ -85,7 +93,94 @@ public class ProfileActivity extends BaseActivity {
             startActivity(new Intent(getApplicationContext(), ChangePasswordActivity.class));
         });
         binding.include.updateProfileImg.setOnClickListener(view -> onUpdateProfileImgPressed());
+        binding.include.imageProfile.setOnClickListener(view -> {
 
+        });
+
+        binding.itemAdd.btnAdd.setOnClickListener(view -> onAddAdressPressed());
+        binding.itemAdd.btnOK.setOnClickListener(view -> {
+            if (isValidAdress()) {
+                onOKAdressPressed();
+            }
+        });
+        binding.itemAdd.icEdit.setOnClickListener(view -> onEditAdressPressed());
+        binding.itemAdd.btnCancel.setOnClickListener(view -> onCancelAdressPressed());
+        binding.itemAdd.icHide.setOnClickListener(view -> onHideAdressPressed());
+    }
+
+    private void onAddAdressPressed() {
+        binding.itemAdd.btnAdd.setVisibility(View.GONE);
+        binding.itemAdd.btnCancel.setVisibility(View.GONE);
+        binding.itemAdd.icHide.setVisibility(View.VISIBLE);
+        TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
+        binding.itemAdd.containerEditAddres.setVisibility(View.VISIBLE);
+        binding.itemAdd.containerBtn.setVisibility(View.VISIBLE);
+    }
+    private void onEditAdressPressed() {
+        if(binding.itemAdd.btnCancel.getVisibility() == View.GONE){
+            binding.itemAdd.btnCancel.setVisibility(View.VISIBLE);
+        }
+        binding.itemAdd.icEdit.setVisibility(View.GONE);
+        TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
+        binding.itemAdd.containerAddress.setVisibility(View.GONE);
+        binding.itemAdd.containerEditAddres.setVisibility(View.VISIBLE);
+        binding.itemAdd.containerBtn.setVisibility(View.VISIBLE);
+    }
+    private void onCancelAdressPressed() {
+
+        binding.itemAdd.icEdit.setVisibility(View.VISIBLE);
+        TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
+
+        binding.itemAdd.containerEditAddres.setVisibility(View.GONE);
+        binding.itemAdd.containerBtn.setVisibility(View.GONE);
+        binding.itemAdd.containerAddress.setVisibility(View.VISIBLE);
+    }
+    private void onHideAdressPressed() {
+
+        binding.itemAdd.icHide.setVisibility(View.GONE);
+        binding.itemAdd.btnAdd.setVisibility(View.VISIBLE);
+        TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
+        binding.itemAdd.containerEditAddres.setVisibility(View.GONE);
+        binding.itemAdd.containerBtn.setVisibility(View.GONE);
+    }
+    private void onOKAdressPressed(){
+
+        HashMap<String, Object> user = new HashMap<>();
+        user.put(Constants.KEY_ADDRESS_CITY, binding.itemAdd.editTextCity.getText().toString());
+        user.put(Constants.KEY_ADDRESS_PROVINCE, binding.itemAdd.editTextProvince.getText().toString());
+        user.put(Constants.KEY_ADDRESS_TOWN, binding.itemAdd.editTextTown.getText().toString());
+        user.put(Constants.KEY_ADDRESS_STREET, binding.itemAdd.editTextStreet.getText().toString());
+        user.put(Constants.KEY_ADDRESS_NUMBER, binding.itemAdd.editTextNumber.getText().toString());
+
+
+        documentReference.update(user)
+                .addOnSuccessListener(v->{
+                    preferenceManager.putString(Constants.KEY_ADDRESS_CITY, binding.itemAdd.editTextCity.getText().toString());
+                    preferenceManager.putString(Constants.KEY_ADDRESS_PROVINCE, binding.itemAdd.editTextProvince.getText().toString());
+                    preferenceManager.putString(Constants.KEY_ADDRESS_TOWN, binding.itemAdd.editTextTown.getText().toString());
+                    preferenceManager.putString(Constants.KEY_ADDRESS_STREET, binding.itemAdd.editTextStreet.getText().toString());
+                    preferenceManager.putString(Constants.KEY_ADDRESS_NUMBER, binding.itemAdd.editTextNumber.getText().toString());
+                    binding.itemAdd.icHide.setVisibility(View.GONE);
+                    TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
+                    binding.itemAdd.containerEditAddres.setVisibility(View.GONE);
+                    binding.itemAdd.containerBtn.setVisibility(View.GONE);
+                    binding.itemAdd.btnAdd.setVisibility(View.GONE);
+                    binding.itemAdd.textCity.setText(binding.itemAdd.editTextCity.getText().toString());
+                    binding.itemAdd.textAddressProvince.setText(binding.itemAdd.editTextProvince.getText().toString());
+                    binding.itemAdd.textAddressTown.setText(binding.itemAdd.editTextTown.getText().toString());
+                    binding.itemAdd.textAddressStreet.setText(binding.itemAdd.editTextStreet.getText().toString());
+                    binding.itemAdd.textAddressNumber.setText(binding.itemAdd.editTextNumber.getText().toString());
+                    binding.itemAdd.containerAddress.setVisibility(View.VISIBLE);
+                    binding.itemAdd.icEdit.setVisibility(View.VISIBLE);
+                    binding.itemAdd.editTextCity.getText().clear();
+                    binding.itemAdd.editTextProvince.getText().clear();
+                    binding.itemAdd.editTextTown.getText().clear();
+                    binding.itemAdd.editTextStreet.getText().clear();
+                    binding.itemAdd.editTextNumber.getText().clear();
+                })
+                .addOnFailureListener(e -> {
+                    showToast("Update Phone Number fail. Please try again!!");
+                });
     }
 
     private void onUpdateProfileImgPressed() {
@@ -156,6 +251,8 @@ public class ProfileActivity extends BaseActivity {
         }
         if(preferenceManager.getString(Constants.KEY_ADDRESS_CITY) != null ){
             binding.itemAdd.btnAdd.setVisibility(View.GONE);
+            binding.itemAdd.icHide.setVisibility(View.GONE);
+
             binding.itemAdd.textCity.setText(preferenceManager.getString(Constants.KEY_ADDRESS_CITY));
             if (preferenceManager.getString(Constants.KEY_ADDRESS_PROVINCE) != null){
                 binding.itemAdd.textAddressProvince.setVisibility(View.VISIBLE);
@@ -175,6 +272,7 @@ public class ProfileActivity extends BaseActivity {
             }
         }else {
             binding.itemAdd.icEdit.setVisibility(View.GONE);
+            binding.itemAdd.icHide.setVisibility(View.GONE);
             binding.itemAdd.containerAddress.setVisibility(View.GONE);
         }
     }
@@ -224,8 +322,26 @@ public class ProfileActivity extends BaseActivity {
         }
         return true;
     }
+    private Boolean isValidAdress(){
+        if (binding.itemAdd.editTextCity.getText().toString().trim().isEmpty()){
+            showToast("Enter your City");
+            return false;
+        }else if(binding.itemAdd.editTextProvince.getText().toString().trim().isEmpty()){
+            showToast("Enter your Province");
+            return false;
+        }else if(binding.itemAdd.editTextTown.getText().toString().trim().isEmpty()){
+            showToast("Enter your Town");
+            return false;
+        }else if(binding.itemAdd.editTextStreet.getText().toString().trim().isEmpty()){
+            showToast("Enter your Street");
+            return false;
+        }else if(binding.itemAdd.editTextNumber.getText().toString().trim().isEmpty()){
+            showToast("Enter your No. ");
+            return false;
+        }
+        return true;
+    }
     private void onCancelPhoneNumberPressed(){
-
         binding.itemInfo.btnHide.setVisibility(View.GONE);
         binding.itemInfo.btnAdd.setVisibility(View.VISIBLE);
         TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
@@ -291,6 +407,7 @@ public class ProfileActivity extends BaseActivity {
 
     }
 
+
     private Boolean isValidEmail(String textEmail){
         if (textEmail.isEmpty()){
             showToast("Enter your email first!");
@@ -303,7 +420,7 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void showToast (String message){
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();;
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
     private void loading(boolean isLoading) {
         if(isLoading){
