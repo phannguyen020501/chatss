@@ -1,5 +1,6 @@
 package com.example.chatss.activities;
 
+import static com.example.chatss.R.drawable.background_input;
 import static com.example.chatss.activities.SignUpActivity.encodeImage;
 import static com.example.chatss.firebase.MessagingService.channelId;
 import static com.example.chatss.utilities.Constants.hideSoftKeyboard;
@@ -24,6 +25,7 @@ import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Base64;
 import android.util.Patterns;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -111,18 +113,19 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void onEditNamePressed() {
+        // Sử dụng LayoutInflater để tạo ra view từ tệp tin layout tùy chỉnh
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.custom_dialog_layout, null);
+
+        // Lấy tham chiếu đến các phần tử trong layout tùy chỉnh
+        TextView textViewTitle = dialogView.findViewById(R.id.textViewTitle);
+        EditText editTextName = dialogView.findViewById(R.id.edit_text_name);
+        Button buttonOK = dialogView.findViewById(R.id.btn_OK);
+        Button buttonEnd = dialogView.findViewById(R.id.btn_Cancel);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
-        builder.setTitle("Change Name");
-        final EditText input = new EditText(ProfileActivity.this);
-        builder.setView(input);
-        builder.setPositiveButton("OK", null);
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setView(dialogView);
+
         final AlertDialog alertDialog = builder.create();
 
         // Ngăn người dùng đóng Alert Dialog bằng cách bấm ra bên ngoài
@@ -130,21 +133,26 @@ public class ProfileActivity extends BaseActivity {
 
         // Ngăn người dùng đóng Alert Dialog bằng cách bấm nút Back
         alertDialog.setCancelable(false);
+        buttonEnd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.cancel();
+            }
+        });
         alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
-                Button buttonPositive = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setOnClickListener(new View.OnClickListener() {
+                buttonOK.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String newName = input.getText().toString().trim();
-                        if (!newName.isEmpty() && !Patterns.DOMAIN_NAME.matcher(input.getText().toString()).matches()) {
+                        String newName = editTextName.getText().toString().trim();
+                        if (!newName.isEmpty() && !Patterns.DOMAIN_NAME.matcher(editTextName.getText().toString()).matches()) {
                             // Thay đổi tên người dùng thành newName ở đây
 
-                            documentReference.update(Constants.KEY_NAME,input.getText().toString())
+                            documentReference.update(Constants.KEY_NAME,editTextName.getText().toString())
                                     .addOnSuccessListener(unused -> {
-                                        preferenceManager.putString(Constants.KEY_NAME, input.getText().toString());
-                                        binding.include.textName.setText(input.getText().toString());
+                                        preferenceManager.putString(Constants.KEY_NAME, editTextName.getText().toString());
+                                        binding.include.textName.setText(editTextName.getText().toString());
                                         alertDialog.dismiss();
                                     })
                                     .addOnFailureListener(e -> {

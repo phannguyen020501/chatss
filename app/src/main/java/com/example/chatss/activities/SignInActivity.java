@@ -1,6 +1,7 @@
 package com.example.chatss.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ public class SignInActivity extends AppCompatActivity {
         }
         binding = ActivitySignInBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        onEditTextStatusChange();
         setListeners();
     }
 
@@ -54,21 +56,62 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private Boolean isValidSignInDetails(){
+        int colorEror = ContextCompat.getColor(this, R.color.error);
         if(binding.inputEmail.getText().toString().trim().isEmpty()){
+            binding.inputEmail.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputEmail.setHintTextColor(colorEror);
             showToast("Enter email");
             return false;
         }
         else if(!Patterns.EMAIL_ADDRESS.matcher(binding.inputEmail.getText().toString()).matches()){
+            binding.inputEmail.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputEmail.setHintTextColor(colorEror);
             showToast("Enter valid email");
             return false;
         } else if(binding.inputPassword.getText().toString().trim().isEmpty()){
+            binding.inputPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputPassword.setHintTextColor(colorEror);
             showToast("Enter password");
             return false;
         } else {
             return true;
         }
     }
-
+    private void onEditTextStatusChange(){
+        int colorFocus = ContextCompat.getColor(getApplicationContext(), R.color.primary_text);
+        int colorDefault = ContextCompat.getColor(getApplicationContext(), R.color.secondary_text);
+        binding.inputPassword.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    binding.inputPassword.setBackgroundResource(R.drawable.background_input_good);
+                    binding.inputPassword.setHintTextColor(colorFocus);
+                }
+                else {
+                    binding.inputPassword.setBackgroundResource(R.drawable.background_input);
+                    binding.inputPassword.setHintTextColor(colorDefault);
+//                    if (binding.inputCurrentPass.getText().toString().isEmpty()) {
+//                        binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_wrong);
+//                    } else {
+//                        binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_good);
+//                    }
+                }
+            }
+        });
+        binding.inputEmail.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    binding.inputEmail.setBackgroundResource(R.drawable.background_input_good);
+                    binding.inputEmail.setHintTextColor(colorFocus);
+                }
+                else {
+                    binding.inputEmail.setBackgroundResource(R.drawable.background_input);
+                    binding.inputEmail.setHintTextColor(colorDefault);
+                }
+            }
+        });
+    }
 
     private void signIn() {
         loading(true);
@@ -85,7 +128,6 @@ public class SignInActivity extends AppCompatActivity {
                         preferenceManager.putString(Constants.KEY_NAME, documentSnapshot.getString(Constants.KEY_NAME));
                         preferenceManager.putString(Constants.KEY_IMAGE, documentSnapshot.getString(Constants.KEY_IMAGE));
                         preferenceManager.putString(Constants.KEY_EMAIL, documentSnapshot.getString(Constants.KEY_EMAIL));
-                        preferenceManager.putString(Constants.KEY_PASSWORD, documentSnapshot.getString(Constants.KEY_EMAIL));
                         if (documentSnapshot.getString(Constants.KEY_PHONE) != null){
                             preferenceManager.putString(Constants.KEY_PHONE, documentSnapshot.getString(Constants.KEY_PHONE));
                         }

@@ -31,7 +31,7 @@
                 <TextView
                     android:text="Email"
                     android:layout_marginStart="@dimen/_6sdp"
-                    android:textSize="@dimen/_11ssp"
+                    android:textSize="@dimen/_13sdp"
                     android:textStyle="bold"
                     android:layout_gravity="center"
                     android:textColor="#605E5E"

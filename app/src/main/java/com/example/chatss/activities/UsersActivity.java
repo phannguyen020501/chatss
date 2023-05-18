@@ -15,7 +15,10 @@ import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -23,11 +26,17 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class UsersActivity extends BaseActivity implements UserListener {
 
     private ActivityUsersBinding binding;
     private PreferenceManager preferenceManager;
+    private FirebaseFirestore db;
+
+    private ListenerRegistration registrationUserDataChange;
+    private List<User> users;
+    private UsersAdapter usersAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +44,11 @@ public class UsersActivity extends BaseActivity implements UserListener {
         binding = ActivityUsersBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         preferenceManager = new PreferenceManager((getApplicationContext()));
+        db = FirebaseFirestore.getInstance();
+
         setListener();
         getUsers();
+        listenUserDataChange();
         binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -72,7 +84,7 @@ public class UsersActivity extends BaseActivity implements UserListener {
                     loading(false);
                     String currentUserId = preferenceManager.getString(Constants.KEY_USED_ID);
                     if(task.isSuccessful() && task.getResult() != null){
-                        List<User> users = new ArrayList<>();
+                        users = new ArrayList<>();
                         for(QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
                             if(currentUserId.equals(queryDocumentSnapshot.getId())){
                                 continue;
@@ -83,10 +95,13 @@ public class UsersActivity extends BaseActivity implements UserListener {
                             user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                             user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                             user.id = queryDocumentSnapshot.getId();
+                            if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                                user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                            }
                             users.add(user);
                         }
                         if(users.size() > 0){
-                            UsersAdapter usersAdapter = new UsersAdapter(users,this);
+                            usersAdapter = new UsersAdapter(users,this);
                             binding.usersRecyclerView.setAdapter(usersAdapter);
                             binding.usersRecyclerView.setVisibility(View.VISIBLE);
                         } else {
@@ -98,6 +113,64 @@ public class UsersActivity extends BaseActivity implements UserListener {
                 });
     }
 
+
+    private void listenUserDataChange(){
+        registrationUserDataChange = db.collection(Constants.KEY_COLLECTION_USERS)
+                .addSnapshotListener(eventListener);
+    }
+
+    private  final EventListener<QuerySnapshot> eventListener = (value, error) -> {
+        if (error != null){
+            return;
+        }
+        if (value != null) {
+            for (DocumentChange documentChange : value.getDocumentChanges()) {
+                String userId = documentChange.getDocument().getId();
+                if (preferenceManager.getString(Constants.KEY_USED_ID) != null){
+                    if (preferenceManager.getString(Constants.KEY_USED_ID).equals(userId)){
+                        break;
+                    }
+                }
+
+//                if (documentChange.getType() == DocumentChange.Type.ADDED) {
+//                    User user = new User();
+//                    user.name = documentChange.getDocument().getString(Constants.KEY_NAME);
+//                    user.email = documentChange.getDocument().getString(Constants.KEY_EMAIL);
+//                    user.image = documentChange.getDocument().getString(Constants.KEY_IMAGE);
+//                    user.token = documentChange.getDocument().getString(Constants.KEY_FCM_TOKEN);
+//                    user.id = documentChange.getDocument().getId();
+//                    if (documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY)!= null){
+//                        user.availability = Objects.requireNonNull(documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY)).intValue();
+//                    }
+//                    users.add(user);
+//                    usersAdapter.notifyItemInserted(users.size() - 1);
+//                }else
+                if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
+                    for (int i = 0; i < users.size(); i++) {
+                        if (users.get(i).id.equals(userId)) {
+
+                            if (documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY) != null){
+                                users.get(i).availability = Objects.requireNonNull(
+                                        documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY)
+                                ).intValue();
+
+                            }
+                            if (documentChange.getDocument().getString(Constants.KEY_IMAGE)!= null){
+                                users.get(i).image = documentChange.getDocument().getString(Constants.KEY_IMAGE);
+                            }
+                            if (documentChange.getDocument().getString(Constants.KEY_NAME)!= null){
+                                users.get(i).name = documentChange.getDocument().getString(Constants.KEY_NAME);
+                            }
+                            usersAdapter.notifyItemChanged(i);
+                            break;
+                        }
+                    }
+                }
+
+            }
+
+        }
+    };
     private void showErrorMessage() {
         binding.textErrorMessage.setText(String.format("%s", "No user available"));
         binding.textErrorMessage.setVisibility(View.VISIBLE);
@@ -169,6 +242,8 @@ public class UsersActivity extends BaseActivity implements UserListener {
             }
         });
 
+
+
 //        y.get()
 //                .addOnCompleteListener(task -> {
 //                    loading(false);
@@ -200,5 +275,11 @@ public class UsersActivity extends BaseActivity implements UserListener {
 //                });
 
 
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        registrationUserDataChange.remove();
     }
 }

@@ -3,6 +3,7 @@ package com.example.chatss.activities;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -51,14 +52,40 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         preferenceManager = new PreferenceManager(getApplicationContext());
         db = FirebaseFirestore.getInstance();
+        onEditTextStatusChange();
         setListeners();
+
     }
 
     private void setListeners(){
         binding.textSignIn.setOnClickListener(v -> onBackPressed());
         binding.buttonSignUp.setOnClickListener(v-> {
             if(isValidSignUpDetails()){
-                signUp();
+                loading(true);
+                db.collection(Constants.KEY_COLLECTION_USERS).whereEqualTo(Constants.KEY_EMAIL, binding.inputEmail.getText().toString())
+                        .get()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                QuerySnapshot querySnapshot = task.getResult();
+
+                                // Email đã tồn tại
+                                // Email không tồn tại
+                                if(querySnapshot != null && !querySnapshot.isEmpty()){
+                                    loading(false);
+                                    binding.inputEmail.setBackgroundResource(R.drawable.background_input_wrong);
+                                    int colorEror = ContextCompat.getColor(this, R.color.error);
+                                    binding.inputEmail.setHintTextColor(colorEror);
+                                    showToast("Email is exist. Please change other email!");
+                                }else {
+                                    signUp();
+                                }
+                            } else {
+                                // Xử lý lỗi truy vấn
+                                loading(false);
+                                showToast("Error checking email");
+                            }
+                        });
+
             }
         });
         binding.layoutImage.setOnClickListener(v ->{
@@ -75,14 +102,12 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void signUp(){
-        loading(true);
-        FirebaseFirestore database = FirebaseFirestore.getInstance();
         HashMap<String, Object> user = new HashMap<>();
         user.put(Constants.KEY_NAME, binding.inputName.getText().toString());
         user.put(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
         user.put(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
         user.put(Constants.KEY_IMAGE, encodedImage);
-        database.collection(Constants.KEY_COLLECTION_USERS)
+        db.collection(Constants.KEY_COLLECTION_USERS)
                 .add(user)
                 .addOnSuccessListener(documentReference -> {
                     loading(false);
@@ -90,6 +115,7 @@ public class SignUpActivity extends AppCompatActivity {
                     preferenceManager.putString(Constants.KEY_USED_ID, documentReference.getId());
                     preferenceManager.putString(Constants.KEY_NAME,binding.inputName.getText().toString());
                     preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
+                    preferenceManager.putString(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
@@ -137,35 +163,107 @@ public class SignUpActivity extends AppCompatActivity {
     );
 
     private Boolean isValidSignUpDetails(){
+        int colorEror = ContextCompat.getColor(this, R.color.error);
         if(encodedImage == null){
             showToast("select profile image");
             return false;
         }else if(binding.inputName.getText().toString().trim().isEmpty()){
+            binding.inputName.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputName.setHintTextColor(colorEror);
             showToast("Enter name");
             return false;
         }else if(binding.inputEmail.getText().toString().trim().isEmpty()){
+            binding.inputEmail.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputEmail.setHintTextColor(colorEror);
             showToast("Enter email");
             return false;
         }else if(!Patterns.EMAIL_ADDRESS.matcher(binding.inputEmail.getText().toString()).matches()){
+            binding.inputEmail.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputEmail.setHintTextColor(colorEror);
             showToast("Enter valid email");
             return false;
         }else if(binding.inputPassword.getText().toString().isEmpty()){
+            binding.inputPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputPassword.setHintTextColor(colorEror);
             showToast("Enter password");
             return false;
         }else if(binding.inputConfirmPassword.getText().toString().isEmpty()){
+            binding.inputConfirmPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputConfirmPassword.setHintTextColor(colorEror);
             showToast("Confirm your password");
             return false;
         }else if(!binding.inputPassword.getText().toString().equals(binding.inputConfirmPassword.getText().toString())){
+            binding.inputPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputPassword.setHintTextColor(colorEror);
+            binding.inputConfirmPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputConfirmPassword.setHintTextColor(colorEror);
             showToast("Password and confirm password must be same");
-            return false;
-        }else if(isExistEmail()){
-            showToast("Email is existed!! Please type another email");
             return false;
         }else{
             return true;
         }
     }
-
+    private void onEditTextStatusChange(){
+        int colorFocus = ContextCompat.getColor(getApplicationContext(), R.color.primary_text);
+        int colorDefault = ContextCompat.getColor(getApplicationContext(), R.color.secondary_text);
+        binding.inputName.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    binding.inputName.setBackgroundResource(R.drawable.background_input_good);
+                    binding.inputName.setHintTextColor(colorFocus);
+                }
+                else {
+                    binding.inputName.setBackgroundResource(R.drawable.background_input);
+                    binding.inputName.setHintTextColor(colorDefault);
+//                    if (binding.inputCurrentPass.getText().toString().isEmpty()) {
+//                        binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_wrong);
+//                    } else {
+//                        binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_good);
+//                    }
+                }
+            }
+        });
+        binding.inputEmail.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    binding.inputEmail.setBackgroundResource(R.drawable.background_input_good);
+                    binding.inputEmail.setHintTextColor(colorFocus);
+                }
+                else {
+                    binding.inputEmail.setBackgroundResource(R.drawable.background_input);
+                    binding.inputEmail.setHintTextColor(colorDefault);
+                }
+            }
+        });
+        binding.inputPassword.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    binding.inputPassword.setBackgroundResource(R.drawable.background_input_good);
+                    binding.inputPassword.setHintTextColor(colorFocus);
+                }
+                else {
+                    binding.inputPassword.setBackgroundResource(R.drawable.background_input);
+                    binding.inputPassword.setHintTextColor(colorDefault);
+                }
+            }
+        });
+        binding.inputConfirmPassword.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    binding.inputConfirmPassword.setBackgroundResource(R.drawable.background_input_good);
+                    binding.inputConfirmPassword.setHintTextColor(colorFocus);
+                }
+                else {
+                    binding.inputConfirmPassword.setBackgroundResource(R.drawable.background_input);
+                    binding.inputConfirmPassword.setHintTextColor(colorDefault);
+                }
+            }
+        });
+    }
     private Boolean isExistEmail(){
 
         db.collection(Constants.KEY_COLLECTION_USERS).whereEqualTo(Constants.KEY_EMAIL, binding.inputEmail.getText().toString()).get().addOnCompleteListener(task -> {

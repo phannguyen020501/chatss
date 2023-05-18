@@ -16,6 +16,16 @@
         app:layout_constraintTop_toTopOf="parent"
         app:riv_oval="true"/>
 
+    <ImageView
+        android:id="@+id/imageStatus"
+        android:layout_width="@dimen/_8sdp"
+        android:layout_height="@dimen/_8sdp"
+        android:background="@drawable/background_offline"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="@id/imageProfile"
+        app:layout_constraintBottom_toBottomOf="@id/imageProfile"
+        app:riv_oval="true" />
+
     <View
         android:id="@+id/viewSupporter"
         android:layout_width="1dp"

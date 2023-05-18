@@ -4,11 +4,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chatss.R;
 import com.example.chatss.databinding.ItemContainerUserBinding;
 import com.example.chatss.listeners.UserListener;
 import com.example.chatss.models.User;
@@ -58,6 +60,12 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
             binding.textName.setText(user.name);
             binding.textEmail.setText(user.email);
             binding.imageProfile.setImageBitmap(getUserImage(user.image));
+            if (user.availability != null){
+                if (user.availability == 1) binding.imageStatus.setBackgroundResource(R.drawable.background_online);
+                else binding.imageStatus.setBackgroundResource(R.drawable.background_offline);
+            }else {
+                binding.imageStatus.setVisibility(View.GONE);
+            }
             binding.getRoot().setOnClickListener(v -> userListener.onUserClicked(user));
         }
     }

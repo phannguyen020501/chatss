@@ -30,12 +30,12 @@
                     android:padding="@dimen/_2sdp"
                     android:src="@drawable/ic_phone"
                     android:layout_marginStart="@dimen/_4sdp"
-                    android:layout_width="@dimen/_20sdp"
-                    android:layout_height="@dimen/_20sdp"/>
+                    android:layout_width="@dimen/_23sdp"
+                    android:layout_height="@dimen/_23sdp"/>
                 <TextView
                     android:text="Mobile"
                     android:layout_marginStart="@dimen/_3sdp"
-                    android:textSize="@dimen/_11ssp"
+                    android:textSize="@dimen/_13sdp"
                     android:textStyle="bold"
                     android:layout_gravity="center"
                     android:textColor="#605E5E"
