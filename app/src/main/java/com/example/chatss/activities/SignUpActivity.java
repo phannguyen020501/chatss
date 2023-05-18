@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.MediaController;
@@ -21,7 +22,9 @@ import com.example.chatss.databinding.ActivitySignInBinding;
 import com.example.chatss.databinding.ActivitySignUpBinding;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.jetbrains.annotations.Contract;
 
@@ -38,6 +41,8 @@ public class SignUpActivity extends AppCompatActivity {
     private PreferenceManager preferenceManager;
     private String encodedImage;
 
+    FirebaseFirestore db;
+    Boolean isExistEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +50,7 @@ public class SignUpActivity extends AppCompatActivity {
         binding = ActivitySignUpBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         preferenceManager = new PreferenceManager(getApplicationContext());
+        db = FirebaseFirestore.getInstance();
         setListeners();
     }
 
@@ -152,11 +158,32 @@ public class SignUpActivity extends AppCompatActivity {
         }else if(!binding.inputPassword.getText().toString().equals(binding.inputConfirmPassword.getText().toString())){
             showToast("Password and confirm password must be same");
             return false;
+        }else if(isExistEmail()){
+            showToast("Email is existed!! Please type another email");
+            return false;
         }else{
             return true;
         }
     }
 
+    private Boolean isExistEmail(){
+
+        db.collection(Constants.KEY_COLLECTION_USERS).whereEqualTo(Constants.KEY_EMAIL, binding.inputEmail.getText().toString()).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                QuerySnapshot querySnapshot = task.getResult();
+
+                // Email đã tồn tại
+                // Email không tồn tại
+                isExistEmail = querySnapshot != null && !querySnapshot.isEmpty();
+            } else {
+                // Xử lý lỗi truy vấn
+                isExistEmail = null;
+                showToast("Error checking email");
+            }
+        });
+
+        return isExistEmail != null && isExistEmail;
+    }
     private void loading(boolean isLoading){
         if(isLoading){
             binding.buttonSignUp.setVisibility(View.INVISIBLE);

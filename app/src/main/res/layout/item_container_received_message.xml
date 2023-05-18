@@ -4,7 +4,8 @@
     android:padding="@dimen/_4sdp"
     android:layout_marginTop="@dimen/_8sdp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/imageProfile"
@@ -21,34 +22,37 @@
         android:layout_height="wrap_content"
         android:id="@+id/chat_content"
         app:layout_constraintStart_toEndOf="@id/imageProfile"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        android:orientation="horizontal">
+
         <TextView
             android:id="@+id/textMessage"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_4sdp"
-            android:paddingTop="@dimen/_8sdp"
-            android:paddingBottom="@dimen/_8sdp"
-            android:paddingStart="@dimen/_12sdp"
-            android:paddingEnd="@dimen/_12sdp"
-            app:layout_constraintWidth_max="wrap"
             android:background="@drawable/background_received_message"
+            android:paddingStart="@dimen/_12sdp"
+            android:paddingTop="@dimen/_8sdp"
+            android:paddingEnd="@dimen/_12sdp"
+            android:paddingBottom="@dimen/_8sdp"
+            android:text="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
             android:textColor="@color/white"
             android:textSize="@dimen/_13ssp"
             app:layout_constraintStart_toEndOf="@id/imageProfile"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.75"/>
-        <ImageView
+            android:maxWidth="@dimen/_220sdp"
+            />
+        <com.google.android.material.imageview.ShapeableImageView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:adjustViewBounds="true"
+            app:shapeAppearanceOverlay="@style/card"
             android:maxWidth="@dimen/_120sdp"
-            android:layout_centerInParent="true"
             android:background="@color/white"
             android:layout_marginStart="@dimen/_4sdp"
-            android:id="@+id/imgChat"
-            android:visibility="visible"/>
+            android:id="@+id/imgChat"/>
     </LinearLayout>
+
     <TextView
         android:id="@+id/textDateTime"
         android:layout_width="0dp"
@@ -56,7 +60,199 @@
         android:layout_marginTop="@dimen/_4sdp"
         android:textColor="@color/secondary_text"
         android:textSize="@dimen/_8ssp"
+        android:layout_marginStart="@dimen/_4sdp"
         app:layout_constraintStart_toStartOf="@id/chat_content"
         app:layout_constraintTop_toBottomOf="@id/chat_content"/>
 
+<!--    <LinearLayout-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:gravity="bottom">-->
+<!--        <com.makeramen.roundedimageview.RoundedImageView-->
+<!--            android:id="@+id/imageProfile"-->
+<!--            android:layout_width="@dimen/_25sdp"-->
+<!--            android:layout_height="@dimen/_25sdp"-->
+<!--            android:background="@drawable/background_image"-->
+<!--            android:scaleType="centerCrop"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:riv_oval="true"/>-->
+<!--        <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:layout_marginStart="@dimen/_4sdp">-->
+<!--            <ImageView-->
+<!--                android:id="@+id/imgChat"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_centerInParent="true"-->
+<!--                android:layout_marginStart="@dimen/_4sdp"-->
+<!--                android:adjustViewBounds="true"-->
+<!--                android:background="@color/white"-->
+<!--                android:maxWidth="@dimen/_120sdp"-->
+<!--                android:scaleType="fitStart"-->
+<!--                android:visibility="visible"-->
+<!--                app:layout_constraintHeight_percent="0.6"-->
+<!--                app:layout_constraintWidth_percent="0.75"-->
+<!--                app:layout_constraintTop_toTopOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="parent"/>-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/textMessage"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:background="@drawable/background_received_message"-->
+<!--                android:paddingStart="@dimen/_12sdp"-->
+<!--                android:paddingTop="@dimen/_8sdp"-->
+<!--                android:paddingEnd="@dimen/_12sdp"-->
+<!--                android:paddingBottom="@dimen/_8sdp"-->
+<!--                android:text="1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"-->
+<!--                android:textColor="@color/white"-->
+<!--                android:textSize="@dimen/_13ssp"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent"-->
+<!--                app:layout_constraintWidth_max="wrap"-->
+<!--                app:layout_constraintWidth_percent="0.75" />-->
+<!--        </androidx.constraintlayout.widget.ConstraintLayout>-->
+<!--        <TextView-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="10dp"-->
+<!--            android:layout_weight="0.2"/>-->
+<!--    </LinearLayout>-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/textDateTime"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="@dimen/_4sdp"-->
+<!--        android:textColor="@color/secondary_text"-->
+<!--        android:textSize="@dimen/_8ssp"-->
+<!--        android:layout_marginStart="@dimen/_29sdp"/>-->
+
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent">-->
+
+<!--    <LinearLayout-->
+<!--        android:id="@+id/linearLayout"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="left"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:padding="5dp"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent">-->
+
+<!--        <androidx.appcompat.widget.AppCompatImageView-->
+<!--            android:id="@+id/inbox_thumb"-->
+<!--            android:layout_width="60dp"-->
+<!--            android:layout_height="60dp"-->
+<!--            android:src="@drawable/ic_launcher" />-->
+
+<!--        <androidx.appcompat.widget.AppCompatTextView-->
+<!--            android:id="@+id/phone"-->
+<!--            android:layout_width="5dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginTop="6dp"-->
+<!--            android:layout_weight="1"-->
+<!--            android:gravity="left"-->
+<!--            android:hint="Phone Number"-->
+<!--            android:padding="10dp"-->
+<!--            android:textSize="15dp"-->
+<!--            android:textStyle="bold" />-->
+
+
+<!--    </LinearLayout>-->
+
+
+<!--    <LinearLayout-->
+<!--        android:id="@+id/message_area"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:padding="10dp"-->
+<!--        android:background="@drawable/rounded_rect_shape"-->
+<!--        android:orientation="horizontal"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toRightOf="parent">-->
+
+
+<!--        <androidx.appcompat.widget.AppCompatImageButton-->
+<!--            android:id="@+id/btn1"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="bottom"-->
+<!--            android:src="@drawable/ic_launcher" />-->
+
+<!--        <androidx.cardview.widget.CardView-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            app:cardBackgroundColor="@android:color/darker_gray"-->
+<!--            app:cardCornerRadius="6dp"-->
+<!--            app:cardElevation="2dp">-->
+
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:orientation="vertical">-->
+
+<!--                <androidx.appcompat.widget.AppCompatImageView-->
+<!--                    android:id="@+id/imageView2"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    app:srcCompat="@mipmap/ic_launcher" />-->
+
+<!--                <androidx.appcompat.widget.AppCompatEditText-->
+<!--                    android:id="@+id/txtMessage"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_gravity="center"-->
+<!--                    android:layout_marginLeft="16dp"-->
+<!--                    android:layout_marginRight="16dp"-->
+<!--                    android:background="@android:color/transparent"-->
+<!--                    android:hint="Enter message"-->
+<!--                    android:maxLines="6" />-->
+
+<!--            </LinearLayout>-->
+
+<!--        </androidx.cardview.widget.CardView>-->
+
+<!--        <androidx.appcompat.widget.AppCompatButton-->
+<!--            android:id="@+id/btnSend"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="bottom"-->
+<!--            android:gravity="center"-->
+<!--            android:text="SEND"-->
+<!--            android:textSize="14dp" />-->
+<!--    </LinearLayout>-->
+
+<!--    <View-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="2dp"-->
+<!--        android:layout_marginBottom="0dp"-->
+<!--        android:background="@color/colorPrimaryDark"-->
+<!--        app:layout_constraintBottom_toTopOf="@+id/message_area"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toRightOf="parent"/>-->
+
+<!--    <androidx.recyclerview.widget.RecyclerView-->
+<!--        android:id="@+id/reyclerview_message_list"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_marginStart="16dp"-->
+<!--        android:scrollbarAlwaysDrawVerticalTrack="true"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/message_area"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/linearLayout"/>-->
+<!--</androidx.constraintlayout.widget.ConstraintLayout>-->
