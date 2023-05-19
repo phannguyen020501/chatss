@@ -1,6 +1,7 @@
 package com.example.chatss.activities;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -45,6 +46,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -139,52 +141,15 @@ public class ChatGroupActivity extends BaseActivity {
 
                     }
                 });
-
-
-        binding.inputMessage.setText(null);
+        database.collection("RoomChat").document(roomChat.getId())
+                .update(
+                        "lastMessage", binding.inputMessage.getText().toString()
+                );
     }
 
     private  void showToash(String message){
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
-
-    private void sendNotification(String messageBody){
-        ApiClient.getClient().create(ApiService.class).sendMessage(
-                Constants.getRemoteMsgHeaders(),
-                messageBody
-        ).enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                if(response.isSuccessful()){
-                    try{
-                        if(response.body() != null){
-                            JSONObject responseJson = new JSONObject(response.body());
-                            JSONArray results = responseJson.getJSONArray("results");
-                            if(responseJson.getInt("failure") == 1){
-                                JSONObject error = (JSONObject) results.get(0);
-                                showToash(error.getString("error"));
-                                return;
-                            }
-                        }
-                    }catch (JSONException e){
-                        e.printStackTrace();
-                    }
-                    showToash("Notification sent successfully");
-                }else {
-                    showToash("Error" + response.code());
-                    Log.d("demo", ""+ response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull  Call<String> call, @NonNull Throwable t) {
-
-                showToash(t.getMessage());
-            }
-        });
-
-    }
-
 
     private void listenMessages(){
         database.collection("RoomChat").document(roomChat.getId()).collection("messages")
@@ -223,18 +188,12 @@ public class ChatGroupActivity extends BaseActivity {
         binding.progressBar.setVisibility(View.GONE);
 
     };
-    private Bitmap getBitmapFromEncodedString(String encodedImage){
-        if(encodedImage != null){
-            byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
-            return BitmapFactory.decodeByteArray(bytes,0,bytes.length);
-        } else {
-            return null;
-        }
-    }
+
     private  void loadReceiverDetails() {
         database = FirebaseFirestore.getInstance();
         roomChat = (RoomChat) getIntent().getSerializableExtra(Constants.KEY_ROOM);
         binding.textName.setText(roomChat.name);
+
     }
 
     private void setListeners(){
@@ -244,6 +203,63 @@ public class ChatGroupActivity extends BaseActivity {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             pickImage.launch(intent);
+        });
+        binding.imageInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String[] items = {"Add member", "Delete member", "leave group"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(ChatGroupActivity.this);
+                builder.setTitle("select")
+                        .setItems(items, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                if(which ==0){
+                                    Intent intent = new Intent(getApplicationContext(), AddMemberActivity.class);
+                                    intent.putExtra(Constants.KEY_ROOM, roomChat);
+                                    startActivity(intent);
+                                }
+                                else if(which ==1)
+                                {
+                                    Intent intent = new Intent(getApplicationContext(), DeleteMemberActivity.class);
+                                    intent.putExtra(Constants.KEY_ROOM, roomChat);
+                                    startActivity(intent);
+                                }
+                                else if(which ==2){
+                                    // roi khoi nhom
+                                    database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
+                                            .delete()
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    Toast.makeText(getApplicationContext(), String.valueOf(roomChat.getId()), Toast.LENGTH_SHORT).show();
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+
+                                                }
+                                            });
+                                    database.collection("Participants").document(String.valueOf(roomChat.getId())).collection("Users").document(preferenceManager.getString(Constants.KEY_USED_ID))
+                                            .delete()
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    onBackPressed();
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+
+                                                }
+                                            });
+                                    onBackPressed();
+                                }
+                            }
+                        });
+                builder.create();
+                builder.show();
+            }
         });
     }
 

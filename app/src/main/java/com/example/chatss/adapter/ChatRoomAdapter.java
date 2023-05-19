@@ -4,7 +4,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,7 +16,11 @@ import com.example.chatss.listeners.RoomChatListener;
 import com.example.chatss.listeners.UserListener;
 import com.example.chatss.models.RoomChat;
 import com.example.chatss.models.User;
+import com.example.chatss.utilities.Constants;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.UserViewHolder>{
@@ -57,6 +63,8 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.UserVi
         }
 
         void  setUserData(RoomChat roomChat){
+            FirebaseFirestore database = FirebaseFirestore.getInstance();
+           
             binding.textName.setText(roomChat.name);
             binding.textEmail.setText(roomChat.id.toString());
             binding.getRoot().setOnClickListener(v -> roomChatListener.onRoomChatClicked(roomChat));

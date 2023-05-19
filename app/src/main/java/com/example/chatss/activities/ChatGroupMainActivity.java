@@ -52,14 +52,19 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
         loadUserDetails();
         getToken();
         setListeners();
-        getUsers();
+        getRooms();
     }
     public void init(){
         //database = FirebaseFirestore.getInstance();
     }
     private void loadUserDetails() {
-        binding.textName.setText("Các nhóm của bạn");
+        binding.textName.setText("Group");
         byte[] bytes = Base64.decode(preferenceManager.getString(Constants.KEY_IMAGE), Base64.DEFAULT);
+        Constants.userCurrent.setId(preferenceManager.getString(Constants.KEY_USED_ID));
+        Constants.userCurrent.setImage(preferenceManager.getString(Constants.KEY_IMAGE));
+        Constants.userCurrent.setEmail(preferenceManager.getString(Constants.KEY_EMAIL));
+        Constants.userCurrent.setName(preferenceManager.getString(Constants.KEY_NAME));
+        Constants.userCurrent.setChecked("1");
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         binding.imageProfile.setImageBitmap(bitmap);
     }
@@ -69,8 +74,9 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
         binding.fabNewChat.setOnClickListener(v -> {
             startActivity(new Intent(getApplicationContext(), CreateGroupActivity.class));
         });
+
     }
-    private void getUsers(){
+    private void getRooms(){
         loading(true);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom")
@@ -85,6 +91,7 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
                             roomChat.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
                             roomChat.id = queryDocumentSnapshot.getString("id");
                             roomChat.lastMessage = queryDocumentSnapshot.getString("lastMessage");
+                            Toast.makeText(getApplicationContext(),roomChat.lastMessage, Toast.LENGTH_SHORT).show();
                             roomChats.add(roomChat);
                         }
                         if(roomChats.size() > 0){
@@ -147,7 +154,7 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
     @Override
     protected void onResume() {
         super.onResume();
-        getUsers();
+        getRooms();
     }
 
     @Override
