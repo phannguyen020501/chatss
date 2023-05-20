@@ -6,10 +6,12 @@ import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.chatss.databinding.ItemContainerReceivedMessageBinding;
 import com.example.chatss.databinding.ItemContainerSentMessageBinding;
 import com.example.chatss.models.ChatMessage;
@@ -90,9 +92,10 @@ public class ChatGroupAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
                     binding.textMessage.setText(chatMessage.message);
                     binding.textDateTime.setText(chatMessage.dateTime);
                 } else if(chatMessage.type.equals("image")){
+
                     binding.textMessage.setVisibility(View.GONE);
                     binding.imgChat.setVisibility(View.VISIBLE);
-                    binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
+                    Glide.with(itemView.getContext()).load(chatMessage.message).into(binding.imgChat);
                     binding.textDateTime.setText(chatMessage.dateTime);
                 }
             }
@@ -109,15 +112,17 @@ public class ChatGroupAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
 
 
         void setData(ChatMessage chatMessage){
-
+            if(chatMessage.imageSender!=null){
+                binding.imageProfile.setImageBitmap(getBitmapFromEncodedString(chatMessage.imageSender));
+            }
             binding.textDateTime.setText(chatMessage.dateTime);
-            binding.imageProfile.setImageBitmap(getBitmapFromEncodedString(chatMessage.imageSender));
             if(chatMessage.type.equals("text")){
                 binding.textMessage.setText(chatMessage.message);
             } else if(chatMessage.type.equals("image")){
                 binding.textMessage.setVisibility(View.GONE);
                 binding.imgChat.setVisibility(View.VISIBLE);
-                binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
+                Glide.with(itemView.getContext()).load(chatMessage.message).into(binding.imgChat);
+                binding.textDateTime.setText(chatMessage.dateTime);
             }
         }
     }

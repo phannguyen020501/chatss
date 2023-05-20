@@ -99,6 +99,7 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     roomChat.put("id", String.valueOf(cntRoomChat));
                     roomChat.put("name", binding.edtCreateGroup.getText().toString());
                     roomChat.put("lastMessage", "");
+                    roomChat.put("idUserCreate", preferenceManager.getString(Constants.KEY_USED_ID));
                     binding.edtCreateGroup.getText().clear();
                     // tao phong chat
                     database.collection("RoomChat").document(String.valueOf(cntRoomChat))
