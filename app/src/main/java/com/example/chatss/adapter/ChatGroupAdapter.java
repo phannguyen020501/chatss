@@ -7,6 +7,7 @@ import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -96,9 +97,9 @@ public class ChatGroupAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
                     binding.textMessage.setText(chatMessage.message);
                     binding.textDateTime.setText(chatMessage.dateTime);
                 } else if(chatMessage.type.equals("image")){
+
                     binding.textMessage.setVisibility(View.GONE);
                     binding.imgChat.setVisibility(View.VISIBLE);
-
                     Picasso.get().load(Uri.parse(chatMessage.message)).into(binding.imgChat);
 
                     binding.imgChat.setOnClickListener(view -> {
@@ -106,6 +107,7 @@ public class ChatGroupAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
                     });
 
                     //binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
+
                     binding.textDateTime.setText(chatMessage.dateTime);
                 }
             }
@@ -122,7 +124,9 @@ public class ChatGroupAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
 
 
         void setData(ChatMessage chatMessage){
-
+            if(chatMessage.imageSender!=null){
+                binding.imageProfile.setImageBitmap(getBitmapFromEncodedString(chatMessage.imageSender));
+            }
             binding.textDateTime.setText(chatMessage.dateTime);
 
             binding.imageProfile.setImageBitmap(getBitmapFromEncodedString(chatMessage.imageSender));
@@ -139,6 +143,7 @@ public class ChatGroupAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
                     downloadImageListener.onItemClick(chatMessage);
                 });
                 //binding.imgChat.setImageBitmap(getBitmapFromEncodedString(chatMessage.message));
+
             }
         }
     }

@@ -132,8 +132,7 @@
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="@dimen/_4sdp"
-            android:layout_marginLeft="@dimen/_4sdp"
+            android:layout_gravity="center"
             android:padding="@dimen/_8sdp"
             android:src="@drawable/ic_image_24"
             android:tint="@color/white"/>

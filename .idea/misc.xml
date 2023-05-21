@@ -2,14 +2,21 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/ChatEcc/chatss/app/src/main/res/drawable/background_chat_input.xml" value="0.1555" />
+        <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_add_member.xml" value="0.10989583333333333" />
+        <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_change_password.xml" value="0.25" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_chat.xml" value="0.16799999999999998" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_chat_group.xml" value="0.18072916666666666" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_chat_group_main.xml" value="0.10989583333333333" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_create_group.xml" value="0.15885416666666666" />
+        <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_delete_member.xml" value="0.12760416666666666" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_main.xml" value="0.10989583333333333" />
+        <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_setting_group.xml" value="0.25" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_sign_in.xml" value="0.17291666666666666" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_sign_up.xml" value="0.17291666666666666" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/activity_users.xml" value="0.16770833333333332" />
+        <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/dialog_custom.xml" value="0.16037735849056603" />
+        <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/item_add.xml" value="0.25" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/item_container_image_message.xml" value="0.1734375" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/item_container_received_message.xml" value="0.15885416666666666" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/item_container_recent_conversion.xml" value="0.15885416666666666" />
@@ -17,12 +24,17 @@
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/item_container_text_message.xml" value="0.17239583333333333" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/item_container_user.xml" value="0.264" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/item_container_user_group.xml" value="0.17760416666666667" />
+        <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/item_email.xml" value="0.25" />
         <entry key="..\:/ChatEcc/chatss/app/src/main/res/layout/send_image_in_chat.xml" value="0.178125" />
       </map>
     </option>
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
+<<<<<<< HEAD
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+=======
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+>>>>>>> 6e3f92b4e80fb975c3e4b3dbefe6ea50b83e65ec
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

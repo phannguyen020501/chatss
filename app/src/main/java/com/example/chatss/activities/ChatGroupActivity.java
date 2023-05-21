@@ -2,8 +2,12 @@ package com.example.chatss.activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
+
 import android.app.DownloadManager;
 import android.content.Context;
+import android.app.Dialog;
+import android.content.DialogInterface;
+
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -13,11 +17,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -26,19 +31,13 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 
 import com.example.chatss.R;
-import com.example.chatss.adapter.ChatAdapter;
 import com.example.chatss.adapter.ChatGroupAdapter;
-import com.example.chatss.databinding.ActivityChatBinding;
 import com.example.chatss.databinding.ActivityChatGroupBinding;
 import com.example.chatss.listeners.DownloadImageListener;
 import com.example.chatss.models.ChatMessage;
 import com.example.chatss.models.RoomChat;
-import com.example.chatss.models.User;
-import com.example.chatss.network.ApiClient;
-import com.example.chatss.network.ApiService;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -47,20 +46,17 @@ import com.google.firebase.firestore.AggregateQuerySnapshot;
 import com.google.firebase.firestore.AggregateSource;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -71,13 +67,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ChatGroupActivity extends BaseActivity implements DownloadImageListener {
+    private String idUserCreate = new String();
 
     private ActivityChatGroupBinding binding;
     private RoomChat roomChat = new RoomChat();
@@ -86,6 +79,7 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
     private PreferenceManager preferenceManager;
     private FirebaseFirestore database;
     private int cntMessage=0;
+
     private Uri imgUri;
 
     private static final int REQUEST_PERMISSION_CODE = 10;
@@ -93,6 +87,8 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
     private Boolean isReceiverAvailable = false;
 
     private String encodedImage, imgUrl;
+
+    private Bitmap bitmapImg ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,7 +109,7 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
                 AggregateQuerySnapshot snapshot = task.getResult();
                 //Log.d("a", "Count: " + snapshot.getCount());
                 cntMessage = (int) (snapshot.getCount()+1);
-                Toast.makeText(getApplicationContext(), String.valueOf(cntMessage), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), String.valueOf(cntMessage), Toast.LENGTH_SHORT).show();
             } else {
                 Log.d("a", "Count failed: ", task.getException());
             }
@@ -135,7 +131,7 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
     private void sendMessage(){
         HashMap<String , Object> message = new HashMap<>();
         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
-        message.put(Constants.KEY_RECEIVER_ID, roomChat.id);
+        message.put("roomId", roomChat.id);
         message.put(Constants.KEY_MESSAGE, binding.inputMessage.getText().toString());
         message.put(Constants.KEY_TIMESTAMP, new Date());
         message.put(Constants.TYPE_MESSAGES_SEND, "text");
@@ -155,52 +151,16 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
 
                     }
                 });
-
-
+        database.collection("RoomChat").document(roomChat.getId())
+                .update(
+                        "lastMessage", binding.inputMessage.getText().toString()
+                );
         binding.inputMessage.setText(null);
     }
 
     private  void showToash(String message){
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
-
-    private void sendNotification(String messageBody){
-        ApiClient.getClient().create(ApiService.class).sendMessage(
-                Constants.getRemoteMsgHeaders(),
-                messageBody
-        ).enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                if(response.isSuccessful()){
-                    try{
-                        if(response.body() != null){
-                            JSONObject responseJson = new JSONObject(response.body());
-                            JSONArray results = responseJson.getJSONArray("results");
-                            if(responseJson.getInt("failure") == 1){
-                                JSONObject error = (JSONObject) results.get(0);
-                                showToash(error.getString("error"));
-                                return;
-                            }
-                        }
-                    }catch (JSONException e){
-                        e.printStackTrace();
-                    }
-                    showToash("Notification sent successfully");
-                }else {
-                    showToash("Error" + response.code());
-                    Log.d("demo", ""+ response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull  Call<String> call, @NonNull Throwable t) {
-
-                showToash(t.getMessage());
-            }
-        });
-
-    }
-
 
     private void listenMessages(){
         database.collection("RoomChat").document(roomChat.getId()).collection("messages")
@@ -239,18 +199,28 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
         binding.progressBar.setVisibility(View.GONE);
 
     };
-    private Bitmap getBitmapFromEncodedString(String encodedImage){
-        if(encodedImage != null){
-            byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
-            return BitmapFactory.decodeByteArray(bytes,0,bytes.length);
-        } else {
-            return null;
-        }
-    }
+
     private  void loadReceiverDetails() {
         database = FirebaseFirestore.getInstance();
         roomChat = (RoomChat) getIntent().getSerializableExtra(Constants.KEY_ROOM);
         binding.textName.setText(roomChat.name);
+        // user tao group
+
+        database.collection("RoomChat")
+                .whereEqualTo("id", roomChat.id)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful() && task.getResult() != null){
+                        for(QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
+                            idUserCreate = queryDocumentSnapshot.getString("idUserCreate");
+
+                        }
+                    }
+                    else {
+
+                    }
+                });
+
     }
 
     private void setListeners(){
@@ -260,6 +230,175 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             pickImage.launch(intent);
+        });
+        binding.imageInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Toast.makeText(getApplicationContext(), idUserCreate, Toast.LENGTH_SHORT).show();
+                if (idUserCreate.equals(preferenceManager.getString(Constants.KEY_USED_ID))) {
+                    String[] items = {"Add member", "Delete member","change group name ", "leave group"};
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ChatGroupActivity.this);
+                    builder.setTitle("select")
+                            .setItems(items, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (which == 0) {
+                                        // them thanh vien
+                                        Intent intent = new Intent(getApplicationContext(), AddMemberActivity.class);
+                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
+                                        startActivity(intent);
+                                    } else if (which == 1) {
+                                        // xoa thanh vien
+                                        Intent intent = new Intent(getApplicationContext(), DeleteMemberActivity.class);
+                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
+                                        startActivity(intent);
+                                    }else if (which == 2) {
+                                        final Dialog dialog1 = new Dialog(ChatGroupActivity.this);
+                                        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                        dialog1.setContentView(R.layout.dialog_custom);
+                                        dialog1.setCanceledOnTouchOutside(false);
+                                        EditText usernameDialog = (EditText) dialog1.findViewById(R.id.usernameDialog);
+                                        Button cancel = (Button) dialog1.findViewById(R.id.btn_cancel_dialog);
+                                        Button confirmation =  (Button) dialog1.findViewById(R.id.btn_confirmation_dialog);
+                                        confirmation.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                String username = usernameDialog.getText().toString();
+                                                database.collection("RoomChat").document(roomChat.getId())
+                                                        .update(
+                                                                "name", username
+                                                        );
+                                                loadReceiverDetails();
+
+                                                dialog1.dismiss();
+
+                                            }
+                                        });
+                                        cancel.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                dialog1.dismiss();
+                                            }
+                                        });
+                                        dialog1.show();
+                                    } else if (which == 3) {
+                                        // roi khoi nhom
+                                        database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
+                                                .delete()
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+                                                        //Toast.makeText(getApplicationContext(), String.valueOf(roomChat.getId()), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+
+                                                    }
+                                                });
+                                        database.collection("Participants").document(String.valueOf(roomChat.getId())).collection("Users").document(preferenceManager.getString(Constants.KEY_USED_ID))
+                                                .delete()
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+                                                        onBackPressed();
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+
+                                                    }
+                                                });
+                                        onBackPressed();
+                                    }
+                                }
+                            });
+                    builder.create();
+                    builder.show();
+                }
+                else{
+                    //
+                    String[] items = {"Add member","change group name ", "leave group"};
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ChatGroupActivity.this);
+                    builder.setTitle("select")
+                            .setItems(items, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (which == 0) {
+                                        // them thanh vien
+                                        Intent intent = new Intent(getApplicationContext(), AddMemberActivity.class);
+                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
+                                        startActivity(intent);
+                                    }
+                                    else if (which == 1) {
+                                        final Dialog dialog1 = new Dialog(ChatGroupActivity.this);
+                                        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                        dialog1.setContentView(R.layout.dialog_custom);
+                                        dialog1.setCanceledOnTouchOutside(false);
+                                        EditText usernameDialog = (EditText) dialog1.findViewById(R.id.usernameDialog);
+                                        Button cancel = (Button) dialog1.findViewById(R.id.btn_cancel_dialog);
+                                        Button confirmation =  (Button) dialog1.findViewById(R.id.btn_confirmation_dialog);
+                                        confirmation.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                String username = usernameDialog.getText().toString();
+                                                database.collection("RoomChat").document(roomChat.getId())
+                                                        .update(
+                                                                "name", username
+                                                        );
+                                                loadReceiverDetails();
+
+                                                dialog1.dismiss();
+
+                                            }
+                                        });
+                                        cancel.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                dialog1.dismiss();
+                                            }
+                                        });
+                                        dialog1.show();
+                                    } else if (which == 2) {
+                                        // roi khoi nhom
+                                        database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
+                                                .delete()
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+                                                        //Toast.makeText(getApplicationContext(), String.valueOf(roomChat.getId()), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+
+                                                    }
+                                                });
+                                        database.collection("Participants").document(String.valueOf(roomChat.getId())).collection("Users").document(preferenceManager.getString(Constants.KEY_USED_ID))
+                                                .delete()
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+                                                        onBackPressed();
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+
+                                                    }
+                                                });
+                                        onBackPressed();
+                                    }
+                                }
+                            });
+                    builder.create();
+                    builder.show();
+                }
+            }
+
         });
     }
 
@@ -312,7 +451,7 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
 
                         imgUrl = uri.toString();
 
-                        HashMap<String , Object> message = new HashMap<>();
+                        HashMap<String, Object> message = new HashMap<>();
                         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
                         message.put(Constants.KEY_RECEIVER_ID, roomChat.id);
                         message.put(Constants.KEY_MESSAGE, imgUrl);
@@ -334,26 +473,14 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
 
                                     }
                                 });
-
+                        database.collection("RoomChat").document(roomChat.getId())
+                                .update(
+                                        "lastMessage", "*Image"
+                                );
                     }
                 });
             }
         });
-
-    }
-
-    private String encodeImage(Bitmap bitmap){
-        int previewWidth = 150;
-        int previewHeight = bitmap.getHeight()*previewWidth/bitmap.getWidth();
-        Bitmap previewBitmap = Bitmap.createScaledBitmap(bitmap, previewWidth, previewHeight, false);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        previewBitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
-        byte[] bytes = byteArrayOutputStream.toByteArray();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return java.util.Base64.getEncoder().encodeToString(bytes);
-        }else{
-            return null;
-        }
     }
 
     private String getReadableDateTime(Date date){
@@ -361,6 +488,11 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
     }
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
 
     protected void onPostResume() {
         super.onPostResume();

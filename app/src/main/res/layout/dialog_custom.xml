@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:text="change group name"
+        android:textSize="@dimen/_23sdp"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+        android:textColor="@color/primary_dark"
+        android:textStyle="bold"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <EditText
+        android:id="@+id/usernameDialog"
+        android:inputType="textEmailAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="4dp"
+        android:hint="name group" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/btn_cancel_dialog"
+            android:layout_width="100dp"
+            android:text="Hủy"
+            android:textSize="10sp"
+            android:layout_height="match_parent"/>
+        <Button
+            android:id="@+id/btn_confirmation_dialog"
+            android:layout_width="100dp"
+            android:layout_marginLeft="10dp"
+            android:textSize="10sp"
+            android:text="Xác nhận"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
+</LinearLayout>

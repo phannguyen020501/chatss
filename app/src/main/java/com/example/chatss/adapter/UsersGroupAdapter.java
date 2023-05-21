@@ -47,10 +47,9 @@ public class UsersGroupAdapter extends RecyclerView.Adapter<UsersGroupAdapter.Us
 
     @Override
     public int getItemCount() {
-
         for(int i=0;i<users.size();i++)
         {
-            Constants.userGroups.add(new UserGroup(users.get(i).id,"0"));
+            Constants.userGroups.add(new UserGroup(users.get(i).id,"0",users.get(i).name,users.get(i).email,users.get(i).image,users.get(i).token));
         }
         return users.size();
     }
@@ -74,7 +73,7 @@ public class UsersGroupAdapter extends RecyclerView.Adapter<UsersGroupAdapter.Us
                     if(b){
                         for(int i=0;i<users.size();i++){
                             if(user.id.equals(users.get(i).id)){
-                                Constants.userGroups.set(i,new UserGroup(user.id,"1"));
+                                Constants.userGroups.set(i,new UserGroup(user.id,"1",users.get(i).name,users.get(i).email,users.get(i).image,users.get(i).token));
                             }
                         }
 
@@ -83,7 +82,7 @@ public class UsersGroupAdapter extends RecyclerView.Adapter<UsersGroupAdapter.Us
                     else{
                         for(int i=0;i<users.size();i++){
                             if(user.id.equals(users.get(i).id)){
-                                Constants.userGroups.set(i,new UserGroup(user.id,"0"));
+                                Constants.userGroups.set(i,new UserGroup(user.id,"0",users.get(i).name,users.get(i).email,users.get(i).image,users.get(i).token));
                             }
                         }
                         Toast.makeText(itemView.getContext(), "Bạn đã bỏ chọn", Toast.LENGTH_SHORT).show();

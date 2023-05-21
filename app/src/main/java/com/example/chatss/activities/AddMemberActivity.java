@@ -3,7 +3,6 @@ package com.example.chatss.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.SearchView;
 import android.widget.Toast;
@@ -12,19 +11,17 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chatss.adapter.UsersGroupAdapter;
-import com.example.chatss.databinding.ActivityCreateGroupBinding;
+import com.example.chatss.databinding.ActivityAddMemberBinding;
 import com.example.chatss.listeners.UserListener;
+import com.example.chatss.models.RoomChat;
 import com.example.chatss.models.User;
+import com.example.chatss.models.UserGroup;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.firestore.AggregateQuery;
-import com.google.firebase.firestore.AggregateQuerySnapshot;
-import com.google.firebase.firestore.AggregateSource;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -33,22 +30,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class CreateGroupActivity extends AppCompatActivity implements UserListener {
-    private ActivityCreateGroupBinding binding;
+public class AddMemberActivity extends AppCompatActivity implements UserListener {
+    private ActivityAddMemberBinding binding;
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
     private PreferenceManager preferenceManager;
-    private int cntRoomChat=0;
+    private RoomChat roomChatCurrent = new RoomChat();
+    List<UserGroup> listUserGroup = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityCreateGroupBinding.inflate(getLayoutInflater());
+        binding = ActivityAddMemberBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        roomChatCurrent = (RoomChat) getIntent().getSerializableExtra(Constants.KEY_ROOM);
         preferenceManager = new PreferenceManager((getApplicationContext()));
         Constants.userGroups.clear();
-        initData();
+        getUserInGroup();
         setListener();
-        getUsers();
-        createGroup();
+        addGroup();
         binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -72,49 +70,56 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
         });
     }
 
-    private void initData() {
-        CollectionReference collection = database.collection("RoomChat");
-        AggregateQuery countQuery = collection.count();
-        countQuery.get(AggregateSource.SERVER).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                AggregateQuerySnapshot snapshot = task.getResult();
-                //Log.d("a", "Count: " + snapshot.getCount());
-                cntRoomChat = (int) (snapshot.getCount()+1);
-                Toast.makeText(getApplicationContext(), String.valueOf(cntRoomChat), Toast.LENGTH_SHORT).show();
-            } else {
-                Log.d("a", "Count failed: ", task.getException());
-            }
-        });
+    private void getUserInGroup() {
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        database.collection("Participants").document(roomChatCurrent.getId()).collection("Users")
+                .get()
+                .addOnCompleteListener(task -> {
+                    String currentUserId = preferenceManager.getString(Constants.KEY_USED_ID);
+                    if(task.isSuccessful() && task.getResult() != null){
+
+                        for(QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
+                            if(currentUserId.equals(queryDocumentSnapshot.getId())){
+                                continue;
+                            }
+
+                            UserGroup userGroup = new UserGroup();
+                            userGroup.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                            userGroup.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
+                            userGroup.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
+                            userGroup.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
+                            userGroup.checked = queryDocumentSnapshot.getString("checked");
+                            userGroup.id = queryDocumentSnapshot.getId();
+                            listUserGroup.add(userGroup);
+                            //Toast.makeText(getApplicationContext(), String.valueOf(listUserGroup.size() + " sdas"), Toast.LENGTH_SHORT).show();
+                        }
+                        getUsers();
+                    } else {
+                        showErrorMessage();
+                    }
+                });
     }
 
-    private void createGroup() {
+
+    private void addGroup() {
         binding.btnCreateGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                if(!binding.edtCreateGroup.getText().toString().equals("")) {
                     loading(true);
-
                     HashMap<String, Object> roomChat = new HashMap<>();
-                    roomChat.put("id", String.valueOf(cntRoomChat));
-                    roomChat.put("name", binding.edtCreateGroup.getText().toString());
-                    roomChat.put("lastMessage", "");
-                    roomChat.put("idUserCreate", preferenceManager.getString(Constants.KEY_USED_ID));
-                    binding.edtCreateGroup.getText().clear();
-                    // tao phong chat
-                    database.collection("RoomChat").document(String.valueOf(cntRoomChat))
-                            .set(roomChat)
-                            .addOnSuccessListener(documentReference -> {
+                    roomChat.put("id",roomChatCurrent.getId() );
+                    roomChat.put("name", roomChatCurrent.getName());
+                    roomChat.put("lastMessage", roomChatCurrent.getLastMessage());
                                 for(int i=0;i<Constants.userGroups.size();i++){
                                     if(Constants.userGroups.get(i).checked.equals("1")){
                                         // them roomChat cho cac user duoc moi tham gia
-                                        database.collection("ListRoomUser").document(Constants.userGroups.get(i).id).collection("ListRoom").document(String.valueOf(cntRoomChat))
+                                        database.collection("ListRoomUser").document(Constants.userGroups.get(i).id).collection("ListRoom").document(roomChatCurrent.getId())
                                                 .set(roomChat)
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
                                                     public void onSuccess(Void aVoid) {
-                                                        // nguoi trong nhom
-
+                                                        Toast.makeText(getApplicationContext(), String.valueOf(roomChatCurrent.getId()), Toast.LENGTH_SHORT).show();
                                                     }
                                                 })
                                                 .addOnFailureListener(new OnFailureListener() {
@@ -123,7 +128,7 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
 
                                                     }
                                                 });
-                                        database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userGroups.get(i).id)
+                                        database.collection("Participants").document(String.valueOf(roomChatCurrent.getId())).collection("Users").document(Constants.userGroups.get(i).id)
                                                 .set(Constants.userGroups.get(i))
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
@@ -139,7 +144,7 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                                                 });
                                     }
                                 }
-                                database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(String.valueOf(cntRoomChat))
+                                database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChatCurrent.getId())
                                         .set(roomChat)
                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
@@ -153,33 +158,14 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
 
                                             }
                                         });
-
-                                database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userCurrent.getId())
-                                        .set(Constants.userCurrent)
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-
-                                            }
-                                        });
                                 loading(false);
-                            })
-                            .addOnFailureListener(exception -> {
-                                loading(false);
-                                showToast(exception.getMessage());
-                            });
-                }
+
+
             }
         });
     }
     private void showToast (String message){
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();;
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
     private void setListener(){
         binding.imageBack.setOnClickListener(v -> onBackPressed());
@@ -199,16 +185,25 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                             if(currentUserId.equals(queryDocumentSnapshot.getId())){
                                 continue;
                             }
-                            User user = new User();
-                            user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
-                            user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
-                            user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
-                            user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
-                            user.id = queryDocumentSnapshot.getId();
-                            users.add(user);
+                            int flag=0;
+                            for (int i=0;i<listUserGroup.size();i++){
+                                if(listUserGroup.get(i).getId().equals(queryDocumentSnapshot.getId())){
+                                    flag =1;
+                                }
+                            }
+                            if(flag ==0) {
+                                User user = new User();
+                                user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                                user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
+                                user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
+                                user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
+                                user.id = queryDocumentSnapshot.getId();
+                                users.add(user);
+                            }
                         }
                         if(users.size() > 0){
                             UsersGroupAdapter usersGroupAdapter = new UsersGroupAdapter(users,this);
+                            Toast.makeText(getApplicationContext(), String.valueOf(users.size()), Toast.LENGTH_SHORT).show();
                             binding.usersRecyclerView.setAdapter(usersGroupAdapter);
                             binding.usersRecyclerView.setVisibility(View.VISIBLE);
                         } else {
@@ -248,26 +243,42 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     if(currentUserId.equals(queryDocumentSnapshot.getId())){
                         continue;
                     }
-                    User user = new User();
-                    user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
-                    user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
-                    user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
-                    user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
-                    user.id = queryDocumentSnapshot.getId();
-                    users.add(user);
+                    int flag=0;
+                    for (int i=0;i<listUserGroup.size();i++){
+                        if(listUserGroup.get(i).getId().equals(queryDocumentSnapshot.getId())){
+                            flag =1;
+                        }
+                    }
+                    if(flag ==0) {
+                        User user = new User();
+                        user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                        user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
+                        user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
+                        user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
+                        user.id = queryDocumentSnapshot.getId();
+                        users.add(user);
+                    }
                 }
 
                 for(QueryDocumentSnapshot queryDocumentSnapshot : y.getResult()){
                     if(currentUserId.equals(queryDocumentSnapshot.getId())){
                         continue;
                     }
-                    User user = new User();
-                    user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
-                    user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
-                    user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
-                    user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
-                    user.id = queryDocumentSnapshot.getId();
-                    users.add(user);
+                    int flag=0;
+                    for (int i=0;i<listUserGroup.size();i++){
+                        if(listUserGroup.get(i).getId().equals(queryDocumentSnapshot.getId())){
+                            flag =1;
+                        }
+                    }
+                    if(flag ==0) {
+                        User user = new User();
+                        user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                        user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
+                        user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
+                        user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
+                        user.id = queryDocumentSnapshot.getId();
+                        users.add(user);
+                    }
                 }
 
                 if(users.size() > 0){
@@ -281,6 +292,10 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                 binding.usersRecyclerView.setVisibility(View.INVISIBLE);
             }
         });
+
+
+
+
     }
 
     @Override

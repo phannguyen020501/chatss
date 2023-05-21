@@ -39,7 +39,7 @@
             android:textColor="@color/white"
             android:textSize="@dimen/_13ssp" />
         <ImageView
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:adjustViewBounds="true"
             android:maxWidth="@dimen/_120sdp"
