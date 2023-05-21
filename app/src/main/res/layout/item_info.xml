@@ -7,8 +7,8 @@
     android:animateLayoutChanges="true"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:card_view="http://schemas.android.com/tools"
-    app:cardCornerRadius="15dp"
-    app:cardElevation="10dp"
+    app:cardCornerRadius="@dimen/_10sdp"
+    app:cardElevation="@dimen/_7sdp"
     app:cardUseCompatPadding="true"
     card_view:cardCornerRAdius="5dp">
     <LinearLayout
@@ -23,19 +23,19 @@
             android:layout_marginTop="@dimen/_5sdp">
             <LinearLayout
                 android:orientation="horizontal"
-                android:padding="3dp"
+                android:padding="@dimen/_2sdp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <ImageView
-                    android:padding="2dp"
+                    android:padding="@dimen/_2sdp"
                     android:src="@drawable/ic_phone"
-                    android:layout_marginStart="5dp"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"/>
+                    android:layout_marginStart="@dimen/_4sdp"
+                    android:layout_width="@dimen/_23sdp"
+                    android:layout_height="@dimen/_23sdp"/>
                 <TextView
                     android:text="Mobile"
-                    android:layout_marginStart="10dp"
-                    android:textSize="14sp"
+                    android:layout_marginStart="@dimen/_3sdp"
+                    android:textSize="@dimen/_13sdp"
                     android:textStyle="bold"
                     android:layout_gravity="center"
                     android:textColor="#605E5E"
@@ -48,29 +48,29 @@
             <LinearLayout
                 android:id="@+id/container_add"
                 android:orientation="horizontal"
-                android:padding="1dp"
+                android:padding="@dimen/_1sdp"
                 android:layout_alignParentEnd="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/_7sdp">
                 <ImageView
                     android:id="@+id/ic_edit"
-                    android:padding="5dp"
+                    android:padding="@dimen/_4sdp"
                     android:src="@drawable/ic_mode_edit_blue"
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"/>
+                    android:layout_width="@dimen/_26sdp"
+                    android:layout_height="@dimen/_26sdp"/>
                 <ImageView
                     android:id="@+id/btn_add"
-                    android:padding="5dp"
+                    android:padding="@dimen/_4sdp"
                     android:src="@drawable/ic_add_info"
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"/>
+                    android:layout_width="@dimen/_26sdp"
+                    android:layout_height="@dimen/_26sdp"/>
                 <ImageView
                     android:id="@+id/btn_hide"
-                    android:padding="5dp"
+                    android:padding="@dimen/_4sdp"
                     android:src="@drawable/ic_remove"
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"/>
+                    android:layout_width="@dimen/_26sdp"
+                    android:layout_height="@dimen/_26sdp"/>
 
             </LinearLayout>
         </RelativeLayout>
@@ -79,9 +79,9 @@
             android:text="+84 ______________"
             android:textStyle="bold"
             android:textColor="@color/black"
-            android:textSize="18sp"
-            android:layout_marginStart="25dp"
-            android:layout_marginBottom="15dp"
+            android:textSize="@dimen/_14ssp"
+            android:layout_marginStart="@dimen/_21sdp"
+            android:layout_marginBottom="@dimen/_11sdp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             />
@@ -89,13 +89,13 @@
             android:id="@+id/edit_text_phone_number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="25dp"
-            android:layout_marginBottom="15dp"
-            android:layout_marginEnd="25dp"
+            android:layout_marginStart="@dimen/_21sdp"
+            android:layout_marginBottom="@dimen/_11sdp"
+            android:layout_marginEnd="@dimen/_21sdp"
             android:imeOptions="actionDone"
             android:inputType="phone"
             android:hint="Your phone number"
-            android:textSize="18sp"
+            android:textSize="@dimen/_14ssp"
             android:visibility="gone"
             />
         <LinearLayout
@@ -105,30 +105,25 @@
             android:gravity="right"
             android:orientation="horizontal"
             android:visibility="gone"
-            android:layout_marginBottom="5dp">
+            android:layout_marginBottom="@dimen/_4sdp">
             <Button
                 android:id="@+id/btn_OK"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="@dimen/_8sdp"
                 android:text="OK"
                 />
             <Button
                 android:id="@+id/btn_Cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="@dimen/_8sdp"
                 android:backgroundTint="@color/red"
                 android:text="Cancel"
                 android:visibility="gone"
                 />
 
         </LinearLayout>
-
-
-
-
-
 
     </LinearLayout>
 

@@ -165,14 +165,21 @@ public class MainActivity extends BaseActivity implements ConversionListener {
 
                 if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
                     for (int i = 0; i < conversations.size(); i++) {
-                        if (conversations.get(i).senderId.equals(userId) || conversations.get(i).receiverId.equals(userId)) {
+                        if (conversations.get(i).conversionId.equals(userId)) {
 
                             if (documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY) != null){
                                 conversations.get(i).avaibility = Objects.requireNonNull(
                                         documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY)
                                 ).intValue();
-                                conversationsAdapter.notifyItemChanged(i);
+
                             }
+                            if (documentChange.getDocument().getString(Constants.KEY_IMAGE)!= null){
+                                conversations.get(i).conversionImage = documentChange.getDocument().getString(Constants.KEY_IMAGE);
+                            }
+                            if (documentChange.getDocument().getString(Constants.KEY_NAME)!= null){
+                                conversations.get(i).conversionName = documentChange.getDocument().getString(Constants.KEY_NAME);
+                            }
+                            conversationsAdapter.notifyItemChanged(i);
                             break;
                         }
                     }
@@ -208,14 +215,15 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                     chatMessage.receiverId = receiverId;
                     if (preferenceManager.getString(Constants.KEY_USED_ID).equals(senderId)){
                         getInitStatusUser(receiverId ,chatMessage);
+                        chatMessage.conversionId = documentChange.getDocument().getString(Constants.KEY_RECEIVER_ID);
                         chatMessage.conversionImage = documentChange.getDocument().getString(Constants.KEY_RECEIVER_IMAGE);
                         chatMessage.conversionName = documentChange.getDocument().getString(Constants.KEY_RECEIVER_NAME);
-                        chatMessage.conversionId = documentChange.getDocument().getString(Constants.KEY_RECEIVER_ID);
                     }else {
                         getInitStatusUser(senderId ,chatMessage);
-                        chatMessage.conversionImage =  documentChange.getDocument().getString(Constants.KEY_SENDER_IMAGE);
+                        chatMessage.conversionImage = documentChange.getDocument().getString(Constants.KEY_SENDER_IMAGE);
                         chatMessage.conversionName = documentChange.getDocument().getString(Constants.KEY_SENDER_NAME);
                         chatMessage.conversionId = documentChange.getDocument().getString(Constants.KEY_SENDER_ID);
+
                     }
                     chatMessage.message = documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE);
                     chatMessage.dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
@@ -223,6 +231,7 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                 }else if (documentChange.getType() == DocumentChange.Type.MODIFIED){
                     for (int i = 0; i < conversations.size(); i++){
                         if (conversations.get(i).senderId.equals(senderId) && conversations.get(i).receiverId.equals(receiverId)){
+
                             conversations.get(i).message = documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE);
                             conversations.get(i).dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
                             break;
@@ -250,8 +259,14 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                             if (document != null && document.exists()) {
                                 if (document.getLong(Constants.KEY_AVAILABILITY) != null) {
                                     chatMessage.avaibility = Objects.requireNonNull(document.getLong(Constants.KEY_AVAILABILITY)).intValue();
-                                    conversationsAdapter.notifyDataSetChanged();
                                 }
+                                if (document.getString(Constants.KEY_IMAGE) != null){
+                                    chatMessage.conversionImage = document.getString(Constants.KEY_IMAGE);
+                                }
+                                if (document.getString(Constants.KEY_NAME) != null){
+                                    chatMessage.conversionName = document.getString(Constants.KEY_NAME);
+                                }
+                                conversationsAdapter.notifyDataSetChanged();
                             } else {
                                 Log.d("TAG", "Tài liệu không tồn tại.");
                             }
@@ -343,5 +358,11 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                 break;
         }
         return super.onTouchEvent(event);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserDetails();
     }
 }

@@ -9,57 +9,69 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="250dp"
+        android:layout_height="@dimen/_200sdp"
         android:layout_centerInParent="true">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="240dp"
-            android:layout_marginTop="40dp"
-            app:cardCornerRadius="15dp"
-            app:cardElevation="10dp"
+            android:layout_height="@dimen/_192sdp"
+            android:layout_marginTop="@dimen/_28sdp"
+            app:cardCornerRadius="@dimen/_10sdp"
+            app:cardElevation="@dimen/_7sdp"
             app:cardUseCompatPadding="true"
             card_view:cardCornerRAdius="5dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="23dp"
+                android:layout_marginTop="@dimen/_19sdp"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/text_name"
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="15dp"
                     android:gravity="center"
-                    android:text="Name"
-                    android:textColor="@color/black"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="@dimen/_20sdp"
+                    android:layout_marginBottom="@dimen/_15sdp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:layout_marginBottom="10dp"
-                    android:gravity="center"
-                    android:text=""
-                    android:textColor="#5C5A5A"
-                    android:textSize="13sp"
-                    android:textStyle="normal" />
+                    <TextView
+                        android:id="@+id/text_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Name"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/_22ssp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/ic_edit"
+                        android:layout_width="@dimen/_26sdp"
+                        android:layout_height="@dimen/_26sdp"
+                        android:layout_alignBottom="@+id/text_name"
+                        android:layout_marginStart="@dimen/_5sdp"
+                        android:padding="@dimen/_5sdp"
+                        android:src="@drawable/ic_mode_edit_blue"
+                        app:layout_constraintBottom_toBottomOf="@id/text_name"
+                        app:layout_constraintTop_toTopOf="@+id/text_name"
+                        app:layout_constraintStart_toEndOf="@+id/text_name" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
+                    android:layout_height="@dimen/_1sdp"
                     android:background="#79D6D1D1" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="horizontal"
-                    android:weightSum="3">
+                    android:orientation="horizontal">
 
                     <Button
                         android:id="@+id/btn_change_pass"
@@ -87,8 +99,8 @@
         android:elevation="15dp"
         android:padding="5dp"
         android:layout_centerHorizontal="true"
-        android:layout_width="98dp"
-        android:layout_height="98dp"
+        android:layout_width="@dimen/_75sdp"
+        android:layout_height="@dimen/_75sdp"
         android:scaleType="centerCrop"/>
     <ImageButton
         android:id="@+id/updateProfileImg"

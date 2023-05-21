@@ -1,5 +1,6 @@
 package com.example.chatss.activities;
 
+import static com.example.chatss.R.drawable.background_input;
 import static com.example.chatss.activities.SignUpActivity.encodeImage;
 import static com.example.chatss.firebase.MessagingService.channelId;
 import static com.example.chatss.utilities.Constants.hideSoftKeyboard;
@@ -10,24 +11,31 @@ import androidx.core.app.NotificationCompat;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.shapes.OvalShape;
 import android.net.Uri;
 import android.os.Bundle;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Base64;
 import android.util.Patterns;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.chatss.R;
@@ -40,6 +48,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.squareup.picasso.Picasso;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -80,13 +89,8 @@ public class ProfileActivity extends BaseActivity {
             }
         });
         binding.itemInfo.btnHide.setOnClickListener(v -> onCancelPhoneNumberPressed());
-        binding.itemEmail.icEdit.setOnClickListener(v -> onEditEmailPressed());
-        binding.itemEmail.btnOK.setOnClickListener(v -> {
-            if (isValidEmail(binding.itemEmail.editTextEmail.getText().toString().trim())){
-                onOKEmailPressed();
-            }
-        });
-        binding.itemEmail.btnCancel.setOnClickListener(v -> onCancelEmailPressed());
+        binding.include.icEdit.setOnClickListener(v -> onEditNamePressed());
+
         binding.itemInfo.btnCancel.setOnClickListener(v -> onCancelPhoneEditPressed());
         binding.itemInfo.icEdit.setOnClickListener(v -> onEditPhonePressed());
         binding.include.btnChangePass.setOnClickListener(v -> {
@@ -106,6 +110,63 @@ public class ProfileActivity extends BaseActivity {
         binding.itemAdd.icEdit.setOnClickListener(view -> onEditAdressPressed());
         binding.itemAdd.btnCancel.setOnClickListener(view -> onCancelAdressPressed());
         binding.itemAdd.icHide.setOnClickListener(view -> onHideAdressPressed());
+    }
+
+    private void onEditNamePressed() {
+        // Sử dụng LayoutInflater để tạo ra view từ tệp tin layout tùy chỉnh
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.custom_dialog_layout, null);
+
+        // Lấy tham chiếu đến các phần tử trong layout tùy chỉnh
+        TextView textViewTitle = dialogView.findViewById(R.id.textViewTitle);
+        EditText editTextName = dialogView.findViewById(R.id.edit_text_name);
+        Button buttonOK = dialogView.findViewById(R.id.btn_OK);
+        Button buttonEnd = dialogView.findViewById(R.id.btn_Cancel);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+        builder.setView(dialogView);
+
+        final AlertDialog alertDialog = builder.create();
+
+        // Ngăn người dùng đóng Alert Dialog bằng cách bấm ra bên ngoài
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        // Ngăn người dùng đóng Alert Dialog bằng cách bấm nút Back
+        alertDialog.setCancelable(false);
+        buttonEnd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.cancel();
+            }
+        });
+        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                buttonOK.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String newName = editTextName.getText().toString().trim();
+                        if (!newName.isEmpty() && !Patterns.DOMAIN_NAME.matcher(editTextName.getText().toString()).matches()) {
+                            // Thay đổi tên người dùng thành newName ở đây
+
+                            documentReference.update(Constants.KEY_NAME,editTextName.getText().toString())
+                                    .addOnSuccessListener(unused -> {
+                                        preferenceManager.putString(Constants.KEY_NAME, editTextName.getText().toString());
+                                        binding.include.textName.setText(editTextName.getText().toString());
+                                        alertDialog.dismiss();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        showToast("Update name false, please try again!!");
+                                    });
+
+                        } else {
+                            Toast.makeText(ProfileActivity.this, "Please enter a valid name", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
+        alertDialog.show();
     }
 
     private void onAddAdressPressed() {
@@ -185,7 +246,7 @@ public class ProfileActivity extends BaseActivity {
 
     private void onUpdateProfileImgPressed() {
         ImagePicker.with(this)
-                .crop()	    			//Crop image(Optional), Check Customization for more option
+                .cropSquare()//Crop image(Optional), Check Customization for more option
                 .compress(1024)			//Final image size will be less than 1 MB(Optional)
                 .maxResultSize(1080, 1080)	//Final image resolution will be less than 1080 x 1080(Optional)
                 .start();
@@ -208,6 +269,7 @@ public class ProfileActivity extends BaseActivity {
                     Uri finalUri = uri;
                     documentReference.update(Constants.KEY_IMAGE, encodedImage)
                             .addOnSuccessListener(unused -> {
+                                preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
                                 binding.include.imageProfile.setImageURI(finalUri);
                             })
                             .addOnFailureListener(e -> {
@@ -349,42 +411,7 @@ public class ProfileActivity extends BaseActivity {
         binding.itemInfo.containerBtn.setVisibility(View.GONE);
     }
 
-    private void onEditEmailPressed(){
-        TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
-        binding.itemEmail.textEmail.setVisibility(View.GONE);
-        binding.itemEmail.icEdit.setVisibility(View.GONE);
-        binding.itemEmail.editTextEmail.setVisibility(View.VISIBLE);
-        binding.itemEmail.containerBtn.setVisibility(View.VISIBLE);
-    }
-    private void onOKEmailPressed(){
-        String textEmail = binding.itemEmail.editTextEmail.getText().toString().trim();
 
-        documentReference.update(Constants.KEY_EMAIL,textEmail)
-                .addOnSuccessListener(v -> {
-                    preferenceManager.putString(Constants.KEY_EMAIL, textEmail);
-
-                    binding.itemEmail.textEmail.setText(textEmail);
-
-                    TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
-                    binding.itemEmail.editTextEmail.setVisibility(View.GONE);
-                    binding.itemEmail.containerBtn.setVisibility(View.GONE);
-
-                    binding.itemEmail.textEmail.setVisibility(View.VISIBLE);
-                    binding.itemEmail.icEdit.setVisibility(View.VISIBLE);
-
-
-                })
-                .addOnFailureListener(e -> {
-                    showToast("Update Email fail! Please try again!!!");
-                });
-    }
-    private void onCancelEmailPressed(){
-        TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
-        binding.itemEmail.textEmail.setVisibility(View.VISIBLE);
-        binding.itemEmail.icEdit.setVisibility(View.VISIBLE);
-        binding.itemEmail.editTextEmail.setVisibility(View.GONE);
-        binding.itemEmail.containerBtn.setVisibility(View.GONE);
-    }
     private void onEditPhonePressed(){
         binding.itemInfo.btnCancel.setVisibility(View.VISIBLE);
         TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
@@ -407,17 +434,6 @@ public class ProfileActivity extends BaseActivity {
 
     }
 
-
-    private Boolean isValidEmail(String textEmail){
-        if (textEmail.isEmpty()){
-            showToast("Enter your email first!");
-            return false;
-        }else if(!Patterns.EMAIL_ADDRESS.matcher(textEmail).matches()){
-            showToast("Enter a valid email ");
-            return false;
-        }
-        return true;
-    }
 
     private void showToast (String message){
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();

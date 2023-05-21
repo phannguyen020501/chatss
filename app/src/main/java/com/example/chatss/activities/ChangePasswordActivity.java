@@ -1,11 +1,16 @@
 package com.example.chatss.activities;
 
+import static com.example.chatss.R.color.black;
 import static com.example.chatss.utilities.Constants.hideSoftKeyboard;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.MotionEvent;
@@ -49,6 +54,7 @@ public class ChangePasswordActivity extends BaseActivity {
                 db.collection(Constants.KEY_COLLECTION_USERS).document(preferenceManager.getString(Constants.KEY_USED_ID));
         getCurrPass();
         setListener();
+        onEditTextStatusChange();
 
     }
 
@@ -81,31 +87,93 @@ public class ChangePasswordActivity extends BaseActivity {
                                 currPass = document.getString(Constants.KEY_PASSWORD);
                             }
                         } else {
-                            Log.d("TAG", "Người dùng không tồn tại.");
+                            Log.d("TAG", "User not exist!");
                         }
                     } else {
-                        showToast("Unable to get curr password");
+                        showToast("Unable to get current password");
                     }
                 });
     }
-    private Boolean isValidSignUpDetails(){
-
+    private void onEditTextStatusChange(){
+        int colorFocus = ContextCompat.getColor(getApplicationContext(), R.color.primary_text);
+        int colorDefault = ContextCompat.getColor(getApplicationContext(), R.color.secondary_text);
+        binding.inputCurrentPass.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_good);
+                    binding.inputCurrentPass.setHintTextColor(colorFocus);
+                }
+                else {
+                    binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input);
+                    binding.inputCurrentPass.setHintTextColor(colorDefault);
+//                    if (binding.inputCurrentPass.getText().toString().isEmpty()) {
+//                        binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_wrong);
+//                    } else {
+//                        binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_good);
+//                    }
+                }
+            }
+        });
+        binding.inputNewPassword.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    binding.inputNewPassword.setBackgroundResource(R.drawable.background_input_good);
+                    binding.inputNewPassword.setHintTextColor(colorFocus);
+                }
+                else {
+                    binding.inputNewPassword.setBackgroundResource(R.drawable.background_input);
+                    binding.inputNewPassword.setHintTextColor(colorDefault);
+                }
+            }
+        });
+        binding.inputConfirmPassword.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    binding.inputConfirmPassword.setBackgroundResource(R.drawable.background_input_good);
+                    binding.inputConfirmPassword.setHintTextColor(colorFocus);
+                }
+                else {
+                    binding.inputConfirmPassword.setBackgroundResource(R.drawable.background_input);
+                    binding.inputConfirmPassword.setHintTextColor(colorDefault);
+                }
+            }
+        });
+    }
+    private Boolean isValidPassDetails(){
+        int colorEror = ContextCompat.getColor(this, R.color.error);
         if(binding.inputCurrentPass.getText().toString().trim().isEmpty()){
+            binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputCurrentPass.setHintTextColor(colorEror);
             showToast("Enter your current password");
             return false;
         }else if(binding.inputNewPassword.getText().toString().trim().isEmpty()){
+            binding.inputNewPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputNewPassword.setHintTextColor(colorEror);
             showToast("Enter your new password");
             return false;
         }else if(binding.inputConfirmPassword.getText().toString().isEmpty()){
+            binding.inputConfirmPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputConfirmPassword.setHintTextColor(colorEror);
             showToast("Confirm your new password");
             return false;
         }else if(!binding.inputNewPassword.getText().toString().equals(binding.inputConfirmPassword.getText().toString())){
+            binding.inputNewPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputNewPassword.setHintTextColor(colorEror);
+            binding.inputConfirmPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputConfirmPassword.setHintTextColor(colorEror);
             showToast("Password and confirm password must be same");
             return false;
         }else if (binding.inputCurrentPass.getText().toString().equals(binding.inputNewPassword.getText().toString())){
-            showToast("New pass word is same with current pass");
+            binding.inputNewPassword.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputNewPassword.setHintTextColor(colorEror);
+            showToast("New password is same with current pass");
             return false;
         }else if (!binding.inputCurrentPass.getText().toString().equals(currPass)) {
+            binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_wrong);
+            binding.inputCurrentPass.setHintTextColor(colorEror);
             showToast("Current password is not correct");
             return false;
         }
@@ -127,7 +195,7 @@ public class ChangePasswordActivity extends BaseActivity {
     private void setListener(){
         binding.imageBack.setOnClickListener(v -> onBackPressed());
         binding.buttonChangePass.setOnClickListener(view -> {
-            if (isValidSignUpDetails()){
+            if (isValidPassDetails()){
                 newPass = binding.inputNewPassword.getText().toString().trim();
                 onChangePassPressed();
             }

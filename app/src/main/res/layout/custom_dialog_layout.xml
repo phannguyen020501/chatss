@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textViewTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Change Name"
+        android:textColor="@color/primary"
+        android:textSize="@dimen/_20ssp"
+        android:textStyle="bold"
+        android:layout_marginStart="@dimen/_21sdp"
+        android:paddingTop="@dimen/_12sdp"
+        android:paddingBottom="@dimen/_12sdp" />
+
+
+
+    <EditText
+        android:id="@+id/edit_text_name"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_40sdp"
+        android:layout_marginStart="@dimen/_21sdp"
+        android:layout_marginBottom="@dimen/_11sdp"
+        android:layout_marginEnd="@dimen/_21sdp"
+        android:paddingStart="@dimen/_16sdp"
+        android:paddingEnd="@dimen/_16sdp"
+        android:imeOptions="actionDone"
+        android:inputType="textPersonName"
+        android:hint="Your new name"
+        android:textSize="@dimen/_14ssp"
+        android:background="@drawable/background_input"
+        />
+    <LinearLayout
+        android:id="@+id/container_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/_4sdp">
+        <Button
+            android:id="@+id/btn_OK"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_8sdp"
+            android:text="OK"
+            />
+        <Button
+            android:id="@+id/btn_Cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_20sdp"
+            android:backgroundTint="@color/red"
+            android:text="Cancel"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>
