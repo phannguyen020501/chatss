@@ -1,12 +1,17 @@
 package com.example.chatss.activities;
 
+import android.Manifest;
 import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -25,6 +30,7 @@ import com.example.chatss.adapter.ChatAdapter;
 import com.example.chatss.adapter.ChatGroupAdapter;
 import com.example.chatss.databinding.ActivityChatBinding;
 import com.example.chatss.databinding.ActivityChatGroupBinding;
+import com.example.chatss.listeners.DownloadImageListener;
 import com.example.chatss.models.ChatMessage;
 import com.example.chatss.models.RoomChat;
 import com.example.chatss.models.User;
@@ -35,6 +41,7 @@ import com.example.chatss.utilities.PreferenceManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.AggregateQuery;
 import com.google.firebase.firestore.AggregateQuerySnapshot;
 import com.google.firebase.firestore.AggregateSource;
@@ -45,6 +52,10 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -66,7 +77,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ChatGroupActivity extends BaseActivity {
+public class ChatGroupActivity extends BaseActivity implements DownloadImageListener {
 
     private ActivityChatGroupBinding binding;
     private RoomChat roomChat = new RoomChat();
@@ -75,9 +86,13 @@ public class ChatGroupActivity extends BaseActivity {
     private PreferenceManager preferenceManager;
     private FirebaseFirestore database;
     private int cntMessage=0;
+    private Uri imgUri;
+
+    private static final int REQUEST_PERMISSION_CODE = 10;
+
     private Boolean isReceiverAvailable = false;
 
-    private String encodedImage;
+    private String encodedImage, imgUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +125,8 @@ public class ChatGroupActivity extends BaseActivity {
         chatMessages = new ArrayList<>();
         chatGroupAdapter = new ChatGroupAdapter(
                 chatMessages,
-                preferenceManager.getString(Constants.KEY_USED_ID)
+                preferenceManager.getString(Constants.KEY_USED_ID),
+                ChatGroupActivity.this
         );
         binding.chatRecyclerView.setAdapter(chatGroupAdapter);
 
@@ -265,19 +281,15 @@ public class ChatGroupActivity extends BaseActivity {
 
                     if(result.getData() != null){
                         Uri imageUri = result.getData().getData();
-                        try {
-                            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                            imageView.setImageBitmap(bitmap);
-                            encodedImage = encodeImage(bitmap);
 
-                            uploadbtn.setOnClickListener(view1 -> {
-                                sendImage();
-                                alertDialog.dismiss();
-                            });
-                        }catch (FileNotFoundException e ){
-                            e.printStackTrace();
-                        }
+                        imgUrl = imageUri.toString();
+
+                        Picasso.get().load(imageUri).into(imageView);
+
+                        uploadbtn.setOnClickListener(view1 -> {
+                            sendImage();
+                            alertDialog.dismiss();
+                        });
                     }
                     alertDialog.show();
 
@@ -286,28 +298,48 @@ public class ChatGroupActivity extends BaseActivity {
     );
 
     private void sendImage() {
-        HashMap<String , Object> message = new HashMap<>();
-        message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
-        message.put(Constants.KEY_RECEIVER_ID, roomChat.id);
-        message.put(Constants.KEY_MESSAGE, encodedImage);
-        message.put(Constants.KEY_TIMESTAMP, new Date());
-        message.put(Constants.TYPE_MESSAGES_SEND, "image");
-        message.put(Constants.KEY_IMAGE, preferenceManager.getString(Constants.KEY_IMAGE));
-        //database.collection(Constants.KEY_COLLECTION_CHAT).add(message);
-        database.collection("RoomChat").document(roomChat.getId()).collection("messages").document(String.valueOf(cntMessage))
-                .set(message)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
+        String filepath = "ChatGroupImages/" +  System.currentTimeMillis();
+
+        StorageReference reference = FirebaseStorage.getInstance().getReference(filepath);
+        reference.putFile(Uri.parse(imgUrl)).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Task<Uri> task = taskSnapshot.getMetadata().getReference().getDownloadUrl();
+
+                task.addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
-                        initData();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
+                    public void onSuccess(Uri uri) {
+
+                        imgUrl = uri.toString();
+
+                        HashMap<String , Object> message = new HashMap<>();
+                        message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
+                        message.put(Constants.KEY_RECEIVER_ID, roomChat.id);
+                        message.put(Constants.KEY_MESSAGE, imgUrl);
+                        message.put(Constants.KEY_TIMESTAMP, new Date());
+                        message.put(Constants.TYPE_MESSAGES_SEND, "image");
+                        message.put(Constants.KEY_IMAGE, preferenceManager.getString(Constants.KEY_IMAGE));
+
+                        database.collection("RoomChat").document(roomChat.getId()).collection("messages").document(String.valueOf(cntMessage))
+                                .set(message)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        initData();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+
+                                    }
+                                });
 
                     }
                 });
+            }
+        });
+
     }
 
     private String encodeImage(Bitmap bitmap){
@@ -332,5 +364,75 @@ public class ChatGroupActivity extends BaseActivity {
 
     protected void onPostResume() {
         super.onPostResume();
+    }
+
+    @Override
+    public void onItemClick(ChatMessage chatMessage) {
+        LayoutInflater inflater = LayoutInflater.from(ChatGroupActivity.this);
+        View view = inflater.inflate(R.layout.send_image_in_chat,null);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(ChatGroupActivity.this)
+                .setView(view)
+                .create();
+
+        alertDialog.show();
+
+        ImageView imageView = view.findViewById(R.id.preview_image);
+        Button uploadbtn = view.findViewById(R.id.preview_upload_img_btn);
+
+        uploadbtn.setText("Download");
+        imgUri = Uri.parse(chatMessage.message);
+
+        Picasso.get().load(imgUri).into(imageView);
+
+        uploadbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                checkPermission();
+                alertDialog.dismiss();
+            }
+        });
+
+    }
+    private void checkPermission() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+                String [] permission = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                requestPermissions(permission, REQUEST_PERMISSION_CODE);
+            } else {
+                startDownload();
+            }
+        } else {
+            startDownload();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startDownload();
+            } else {
+                showToash("Permission Denied");
+            }
+        }
+    }
+
+    private void startDownload() {
+
+        DownloadManager.Request request = new DownloadManager.Request(imgUri);
+        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+        request.setTitle("Download");
+        request.setDescription("Dowmload file...");
+
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, String.valueOf(System.currentTimeMillis()) + ".jpg");
+
+        DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        if(downloadManager != null){
+            downloadManager.enqueue(request);
+            showToash("Download successful");
+        }
     }
 }

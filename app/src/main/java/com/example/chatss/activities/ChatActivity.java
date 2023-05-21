@@ -49,10 +49,14 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.google.firestore.v1.Document;
 import com.squareup.picasso.Picasso;
 
 import org.checkerframework.checker.units.qual.C;
@@ -74,6 +78,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 import retrofit2.Call;
@@ -90,13 +95,20 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
     private PreferenceManager preferenceManager;
     private FirebaseFirestore database;
     private String conversionId = null;
+
     private Boolean isReceiverAvailable = false;
 
-    private String encodedImage, imgUrl;
+    private String encodedImage, imgUrl, myId;
 
     private Bitmap bitmapImg ;
 
     private Uri imgUri;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        isChat(true);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,9 +118,10 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
         setListeners();
         loadReceiverDetails();
         init();
+        updateIsSeen();
         listenMessages();
+        setChange();
     }
-
 
     private void init() {
         preferenceManager = new PreferenceManager(getApplicationContext());
@@ -121,15 +134,47 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
         );
         binding.chatRecyclerView.setAdapter(chatAdapter);
         database = FirebaseFirestore.getInstance();
+        myId = preferenceManager.getString(Constants.KEY_USED_ID);
     }
+
+    private void isChat(Boolean on){
+        database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).whereEqualTo(Constants.KEY_SENDER_ID, receiverUser.id)
+                        .whereEqualTo(Constants.KEY_RECEIVER_ID, myId).get()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0) {
+                                DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
+                                String conversionId = documentSnapshot.getId();
+                                HashMap<String, Object> data = new HashMap<>();
+                                data.put(myId, on);
+                                DocumentReference documentReference =
+                                        database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).document(conversionId);
+                                documentReference.set(data, SetOptions.merge());
+                            }
+                        });
+        database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).whereEqualTo(Constants.KEY_SENDER_ID, myId)
+                .whereEqualTo(Constants.KEY_RECEIVER_ID, receiverUser.id).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0) {
+                        DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
+                        String conversionId = documentSnapshot.getId();
+                        HashMap<String, Object> data = new HashMap<>();
+                        data.put(myId, on);
+                        DocumentReference documentReference =
+                                database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).document(conversionId);
+                        documentReference.set(data, SetOptions.merge());
+                    }
+                });
+    }
+
 
     private void sendMessage(){
         HashMap<String , Object> message = new HashMap<>();
         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
         message.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
         message.put(Constants.KEY_MESSAGE, binding.inputMessage.getText().toString());
-        message.put(Constants.KEY_TIMESTAMP, new Date());
         message.put(Constants.TYPE_MESSAGES_SEND, "text");
+        message.put(Constants.KEY_TIMESTAMP, new Date());
+        //message.put(Constants.isSeen, false);
         database.collection(Constants.KEY_COLLECTION_CHAT).add(message);
         if (conversionId != null){
             updateConversion(binding.inputMessage.getText().toString());
@@ -141,8 +186,13 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
             conversion.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
             conversion.put(Constants.KEY_RECEIVER_NAME, receiverUser.name);
             conversion.put(Constants.KEY_RECEIVER_IMAGE, receiverUser.image);
+            conversion.put(Constants.isSeen, false);
+            conversion.put(myId, true);
+            conversion.put(receiverUser.id, false);
             conversion.put(Constants.KEY_LAST_MESSAGE, binding.inputMessage.getText().toString());
             conversion.put(Constants.KEY_TIMESTAMP, new Date());
+            conversion.put(Constants.MESS_RECEIVER_ID, receiverUser.id);
+            conversion.put(Constants.MESS_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
             addConversion(conversion);
         }
         if (!isReceiverAvailable){
@@ -236,6 +286,8 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
         });
     }
 
+
+
     private void listenMessages(){
         database.collection(Constants.KEY_COLLECTION_CHAT)
                 .whereEqualTo(Constants.KEY_SENDER_ID,preferenceManager.getString(Constants.KEY_USED_ID))
@@ -253,6 +305,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
         }
         if (value != null){
             int count = chatMessages.size();
+            int k=0;
             for (DocumentChange documentChange : value.getDocumentChanges()){
                if (documentChange.getType() == DocumentChange.Type.ADDED){
                    ChatMessage chatMessage = new ChatMessage();
@@ -262,7 +315,9 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                    chatMessage.message = documentChange.getDocument().getString(Constants.KEY_MESSAGE);
                    chatMessage.dateTime = getReadableDateTime(documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP));
                    chatMessage.dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
+
                    chatMessages.add(chatMessage);
+                   k=k+1;
                }
             }
             Collections.sort(chatMessages, (obj1, obj2) -> obj1.dateObject.compareTo(obj2.dateObject));
@@ -271,6 +326,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
             }else {
                 chatAdapter.notifyItemRangeInserted(chatMessages.size(),chatMessages.size());
                 binding.chatRecyclerView.smoothScrollToPosition(chatMessages.size() - 1);
+                //chatAdapter.notifyDataSetChanged();
             }
             binding.chatRecyclerView.setVisibility(View.VISIBLE);
         }
@@ -279,6 +335,8 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
             checkForConversion();
         }
     };
+
+
     private Bitmap getBitmapFromEncodedString(String encodedImage){
         if (encodedImage != null){
             byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
@@ -296,11 +354,12 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
     private void setListeners(){
         binding.imageBack.setOnClickListener(view -> onBackPressed());
         binding.layoutSend.setOnClickListener(view -> sendMessage());
-        binding.layoutSendImage.setOnClickListener(v ->{
+        binding.layoutSendImage.setOnClickListener(view -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             pickImage.launch(intent);
         });
+
     }
 
     private final ActivityResultLauncher<Intent> pickImage = registerForActivityResult(
@@ -359,6 +418,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                         message.put(Constants.KEY_MESSAGE, imgUrl);
                         message.put(Constants.KEY_TIMESTAMP, new Date());
                         message.put(Constants.TYPE_MESSAGES_SEND, "image");
+                        //message.put(Constants.isSeen, false);
                         database.collection(Constants.KEY_COLLECTION_CHAT).add(message);
 
                         if (conversionId != null){
@@ -370,14 +430,18 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                             conversion.put(Constants.KEY_SENDER_IMAGE, preferenceManager.getString(Constants.KEY_IMAGE));
                             conversion.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
                             conversion.put(Constants.KEY_RECEIVER_NAME, receiverUser.name);
+                            conversion.put(Constants.isSeen, false);
+                            conversion.put(myId, true);
+                            conversion.put(receiverUser.id, false);
                             conversion.put(Constants.KEY_RECEIVER_IMAGE, receiverUser.image);
                             conversion.put(Constants.KEY_LAST_MESSAGE, "*Hình ảnh");
                             conversion.put(Constants.KEY_TIMESTAMP, new Date());
+                            conversion.put(Constants.MESS_RECEIVER_ID, receiverUser.id);
+                            conversion.put(Constants.MESS_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
                             addConversion(conversion);
                         }
                     }
                 });
-
             }
         });
 
@@ -397,10 +461,57 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
     private void updateConversion(String message){
         DocumentReference documentReference =
                 database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).document(conversionId);
+        documentReference.get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot documentSnapshot = task.getResult();
+                        Boolean isChat = documentSnapshot.getBoolean(receiverUser.id);
+                        documentReference.update(
+                                Constants.isSeen, isChat);
+                    }
+                });
         documentReference.update(
                 Constants.KEY_LAST_MESSAGE, message,
-                Constants.KEY_TIMESTAMP, new Date()
+                Constants.KEY_TIMESTAMP, new Date(),
+                Constants.MESS_RECEIVER_ID, receiverUser.id,
+                Constants.MESS_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID)
         );
+    }
+
+    private void setChange(){
+        database.collection(Constants.KEY_COLLECTION_CONVERSATIONS)
+                .whereEqualTo(Constants.KEY_SENDER_ID,preferenceManager.getString(Constants.KEY_USED_ID))
+                .whereEqualTo(Constants.KEY_RECEIVER_ID, receiverUser.id)
+                .addSnapshotListener(eventListener1);
+        database.collection(Constants.KEY_COLLECTION_CONVERSATIONS)
+                .whereEqualTo(Constants.KEY_SENDER_ID, receiverUser.id)
+                .whereEqualTo(Constants.KEY_RECEIVER_ID, preferenceManager.getString(Constants.KEY_USED_ID))
+                .addSnapshotListener(eventListener1);
+    }
+
+    private final EventListener<QuerySnapshot> eventListener1 = (value, error) -> {
+        if (error != null){
+            return;
+        }
+        if (value != null) {
+            chatAdapter.notifyDataSetChanged();
+        }
+    };
+
+
+    private void updateIsSeen(){
+        database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).whereEqualTo(Constants.MESS_SENDER_ID, receiverUser.id)
+                .whereEqualTo(Constants.MESS_RECEIVER_ID, preferenceManager.getString(Constants.KEY_USED_ID)).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0) {
+                        DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
+                        String conversationId = documentSnapshot.getId();
+                        DocumentReference documentReference =
+                                database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).document(conversationId);
+                        documentReference.update(
+                                Constants.isSeen, true);
+                    }
+                });
     }
 
     private  void checkForConversion(){
@@ -435,6 +546,12 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
     protected void onPostResume() {
         super.onPostResume();
         listenAvailabilityOfReceiver();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isChat(false);
     }
 
     @Override
@@ -500,7 +617,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
         request.setDescription("Dowmload file...");
 
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, String.valueOf(System.currentTimeMillis()));
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, String.valueOf(System.currentTimeMillis()) + ".jpg");
 
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         if(downloadManager != null){

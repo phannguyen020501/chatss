@@ -21,23 +21,23 @@
         android:layout_height="wrap_content"
         android:id="@+id/chat_content"
         app:layout_constraintStart_toEndOf="@id/imageProfile"
+        android:orientation="horizontal"
+        android:layout_marginStart="@dimen/_2sdp"
         app:layout_constraintTop_toTopOf="parent">
         <TextView
             android:id="@+id/textMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_4sdp"
+            android:layout_marginEnd="@dimen/_36sdp"
             android:paddingTop="@dimen/_8sdp"
             android:paddingBottom="@dimen/_8sdp"
             android:paddingStart="@dimen/_12sdp"
             android:paddingEnd="@dimen/_12sdp"
-            app:layout_constraintWidth_max="wrap"
+            android:layout_alignParentStart="true"
             android:background="@drawable/background_received_message"
             android:textColor="@color/white"
-            android:textSize="@dimen/_13ssp"
-            app:layout_constraintStart_toEndOf="@id/imageProfile"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.75"/>
+            android:textSize="@dimen/_13ssp" />
         <ImageView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -58,5 +58,14 @@
         android:textSize="@dimen/_8ssp"
         app:layout_constraintStart_toStartOf="@id/chat_content"
         app:layout_constraintTop_toBottomOf="@id/chat_content"/>
+    <TextView
+        android:id="@+id/textSeen"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp"
+        android:textColor="@color/secondary_text"
+        android:textSize="@dimen/_8ssp"
+        app:layout_constraintStart_toStartOf="@id/chat_content"
+        app:layout_constraintTop_toBottomOf="@id/textDateTime"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

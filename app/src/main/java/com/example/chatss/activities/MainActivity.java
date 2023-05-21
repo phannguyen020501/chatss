@@ -294,6 +294,15 @@ public class MainActivity extends BaseActivity implements ConversionListener {
     public void onConversionClicked(User user) {
         Intent it = new Intent(getApplicationContext(),ChatActivity.class);
         it.putExtra(Constants.KEY_USER,user);
+//        database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).whereEqualTo(Constants.KEY_SENDER_ID, user.id)
+//                    .whereEqualTo(Constants.KEY_RECEIVER_ID, preferenceManager.getString(Constants.KEY_USED_ID)).get()
+//                    .addOnCompleteListener(task -> {
+//                        if (task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0) {
+//                            DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
+//                            conversationId = documentSnapshot.getId();
+//                            it.putExtra(Constants.KEY_CONVERSATION_ID,conversationId);
+//                        }
+//                    });
         startActivity(it);
     }
     @Override
