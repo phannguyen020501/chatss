@@ -50,6 +50,8 @@ public class Constants {
     public static final String KEY_AVAILABILITY = "availability";
     public static final String REMOTE_MSG_AUTHORIZATION = "Authorization";
     public static final String REMOTE_MSG_CONTENT_TYPE = "Content-type";
+    public static final String KEY_PUBLIC_KEY = "publicKey";
+    public static final String KEY_PRIVATE_KEY = "privateKey";
 
     public static final String REMOTE_MSG_DATA = "data";
     public static final String TYPE_MESSAGES_SEND = "type";

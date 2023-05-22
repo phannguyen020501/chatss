@@ -17,8 +17,16 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 
+import org.bouncycastle.util.encoders.Hex;
 import org.checkerframework.checker.units.qual.C;
 
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 
 public class SignInActivity extends AppCompatActivity {
@@ -104,6 +112,32 @@ public class SignInActivity extends AppCompatActivity {
                         if (documentSnapshot.getString(Constants.KEY_ADDRESS_NUMBER) != null){
                             preferenceManager.putString(Constants.KEY_ADDRESS_NUMBER, documentSnapshot.getString(Constants.KEY_ADDRESS_NUMBER));
                         }
+                        //get private key
+                        KeyStore keyStore = null;
+                        try {
+                            keyStore = KeyStore.getInstance("BKS");
+                            keyStore.load(null, null); // Load hoặc tạo mới KeyStore
+
+                            KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(binding.inputPassword.getText().toString().toCharArray());
+                            KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(binding.inputEmail.getText().toString(), passwordProtection);
+                            PrivateKey privateKey = privateKeyEntry.getPrivateKey();
+                            System.out.println("sau khi lưu và lấy");
+                            System.out.println(Hex.toHexString(privateKey.getEncoded()));
+
+
+                        } catch (KeyStoreException e) {
+                            e.printStackTrace();
+                        } catch (UnrecoverableEntryException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        } catch (CertificateException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
