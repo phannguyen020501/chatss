@@ -16,10 +16,13 @@ import com.example.chatss.listeners.DownloadImageListener;
 import com.example.chatss.models.ChatMessage;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -125,7 +128,14 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
                         }
                     });
 
-                    if(position == size -1) isSeen(chatMessage, position);
+                    if(position == chatMessages.size() -1) {
+                        isSeen(chatMessage, position);
+                    }
+                    else {
+                        binding.textDateTime.setVisibility(View.GONE);
+                        binding.textSeen.setVisibility(View.GONE);
+                    }
+
 
                     Picasso.get().load(Uri.parse(chatMessage.message)).into(binding.imgChat);
                     binding.imgChat.setOnLongClickListener(view -> {
@@ -149,35 +159,69 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
                         }
                     });
 
-                    if(position == size -1) isSeen(chatMessage, position);
+                    if(position == chatMessages.size() -1){
+                        isSeen(chatMessage, position);
+                    }
+                    else {
+                        binding.textDateTime.setVisibility(View.GONE);
+                        binding.textSeen.setVisibility(View.GONE);
+                    }
 
                     binding.textMessage.setText(chatMessage.message);
                 }
             }
+
         }
         private void isSeen(ChatMessage chat, int position){
             database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).whereEqualTo(Constants.MESS_SENDER_ID, chat.senderId)
-                    .whereEqualTo(Constants.MESS_RECEIVER_ID, chat.receiverId).get()
-                    .addOnCompleteListener(task -> {
-                        if(task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0 ) {
-                            DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
-                            if(getAdapterPosition()==position)
-                            {
-                                if(documentSnapshot.getBoolean(Constants.isSeen)) {
-                                    binding.textDateTime.setVisibility(View.VISIBLE);
-                                    binding.textDateTime.setText(chat.dateTime);
-                                    binding.textSeen.setVisibility(View.VISIBLE);
-                                    binding.textSeen.setText("Seen");
+                    .whereEqualTo(Constants.MESS_RECEIVER_ID, chat.receiverId)
+                    .addSnapshotListener(
+                            (value, error) -> {
+                                if (error != null) {
+                                    return;
+                                }
+                                if (value != null) {
+                                    for (DocumentChange documentChange : value.getDocumentChanges()) {
 
-                                } else{
-                                    binding.textDateTime.setVisibility(View.VISIBLE);
-                                    binding.textDateTime.setText(chat.dateTime);
-                                    binding.textSeen.setVisibility(View.VISIBLE);
-                                    binding.textSeen.setText("Delivered");
+                                        if (getAdapterPosition() == position) {
+                                            if (Boolean.TRUE.equals(documentChange.getDocument().getBoolean(Constants.isSeen))) {
+                                                binding.textDateTime.setVisibility(View.VISIBLE);
+                                                binding.textDateTime.setText(chat.dateTime);
+                                                binding.textSeen.setVisibility(View.VISIBLE);
+                                                binding.textSeen.setText("Seen");
+
+                                            } else {
+                                                binding.textDateTime.setVisibility(View.VISIBLE);
+                                                binding.textDateTime.setText(chat.dateTime);
+                                                binding.textSeen.setVisibility(View.VISIBLE);
+                                                binding.textSeen.setText("Delivered");
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    });
+                    );
+//                    .get()
+//                    .addOnCompleteListener(task -> {
+//                        if(task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0 ) {
+//                            DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
+//                            if(getAdapterPosition()==position)
+//                            {
+//                                if(documentSnapshot.getBoolean(Constants.isSeen)) {
+//                                    binding.textDateTime.setVisibility(View.VISIBLE);
+//                                    binding.textDateTime.setText(chat.dateTime);
+//                                    binding.textSeen.setVisibility(View.VISIBLE);
+//                                    binding.textSeen.setText("Seen");
+//
+//                                } else{
+//                                    binding.textDateTime.setVisibility(View.VISIBLE);
+//                                    binding.textDateTime.setText(chat.dateTime);
+//                                    binding.textSeen.setVisibility(View.VISIBLE);
+//                                    binding.textSeen.setText("Delivered");
+//                                }
+//                            }
+//                        }
+//                    });
 
         }
     }
@@ -270,3 +314,4 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
 }
+
