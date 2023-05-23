@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.MediaController;
 import android.widget.Toast;
 
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.R;
 import com.example.chatss.databinding.ActivitySignInBinding;
 import com.example.chatss.databinding.ActivitySignUpBinding;
@@ -31,7 +32,15 @@ import org.jetbrains.annotations.Contract;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.function.Predicate;
@@ -77,7 +86,14 @@ public class SignUpActivity extends AppCompatActivity {
                                     binding.inputEmail.setHintTextColor(colorEror);
                                     showToast("Email is exist. Please change other email!");
                                 }else {
-                                    signUp();
+                                    try {
+                                        signUp();
+                                    } catch (IOException | CertificateException |
+                                             KeyStoreException | NoSuchAlgorithmException |
+                                             SignatureException | NoSuchProviderException |
+                                             InvalidKeyException e) {
+                                        throw new RuntimeException(e);
+                                    }
                                 }
                             } else {
                                 // Xử lý lỗi truy vấn
@@ -101,12 +117,30 @@ public class SignUpActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    private void signUp(){
+    private void signUp() throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
+
+        loading(true);
+
+        KeyPair keyPair = ECCc.generateECKeys();
+        String publicKeyString = ECCc.publicKeyToString(keyPair.getPublic());
+        System.out.println(ECCc.privateKeyToString(keyPair.getPrivate()));
+
+
+
+
         HashMap<String, Object> user = new HashMap<>();
         user.put(Constants.KEY_NAME, binding.inputName.getText().toString());
         user.put(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
         user.put(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
         user.put(Constants.KEY_IMAGE, encodedImage);
+        user.put(Constants.KEY_PUBLIC_KEY, publicKeyString);
+
+        //lưu private key
+        ECCc.savePrivateKey(getApplicationContext(),
+                binding.inputEmail.getText().toString(),
+                binding.inputPassword.getText().toString(),
+                keyPair
+        );
         db.collection(Constants.KEY_COLLECTION_USERS)
                 .add(user)
                 .addOnSuccessListener(documentReference -> {

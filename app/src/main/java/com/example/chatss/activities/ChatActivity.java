@@ -120,7 +120,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
         init();
         updateIsSeen();
         listenMessages();
-//        setChange();
+        setChange();
     }
 
     private void init() {
