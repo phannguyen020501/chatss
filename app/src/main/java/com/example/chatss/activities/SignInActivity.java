@@ -1,5 +1,8 @@
 package com.example.chatss.activities;
 
+import static com.example.chatss.utilities.KeyUtils.tryr;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -59,6 +62,7 @@ public class SignInActivity extends AppCompatActivity {
     private ActivitySignInBinding binding;
     private PreferenceManager preferenceManager;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +78,7 @@ public class SignInActivity extends AppCompatActivity {
         setListeners();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void setListeners(){
         binding.textCreateNewAccount.setOnClickListener(v ->
                 startActivity(new Intent(getApplicationContext(), SignUpActivity.class))
@@ -87,8 +92,13 @@ public class SignInActivity extends AppCompatActivity {
 //        }
         );
         binding.buttonSignIn.setOnClickListener(v->{
-            if(isValidSignInDetails()){
-                signIn();
+//            if(isValidSignInDetails()){
+//                signIn();
+//            }
+            try {
+                tryr();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
 //            try {
 //                main();

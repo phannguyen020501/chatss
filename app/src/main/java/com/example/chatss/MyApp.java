@@ -7,6 +7,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Build;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import java.security.Security;
+
 public class MyApp extends Application {
     @Override
     public void onCreate() {
@@ -19,6 +23,9 @@ public class MyApp extends Application {
             channel.setDescription(channelDescription);
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
+            Security.removeProvider("BC");
+            Security.addProvider(new BouncyCastleProvider());
+
         }
     }
 }

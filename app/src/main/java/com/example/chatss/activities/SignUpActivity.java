@@ -2,26 +2,33 @@ package com.example.chatss.activities;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.MediaController;
 import android.widget.Toast;
 
+import com.example.chatss.BuildConfig;
 import com.example.chatss.R;
 import com.example.chatss.databinding.ActivitySignInBinding;
 import com.example.chatss.databinding.ActivitySignUpBinding;
 import com.example.chatss.utilities.Constants;
+import com.example.chatss.utilities.KeyUtils;
 import com.example.chatss.utilities.PreferenceManager;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -31,7 +38,15 @@ import org.jetbrains.annotations.Contract;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.function.Predicate;
@@ -45,6 +60,7 @@ public class SignUpActivity extends AppCompatActivity {
     FirebaseFirestore db;
     Boolean isExistEmail;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +73,7 @@ public class SignUpActivity extends AppCompatActivity {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void setListeners(){
         binding.textSignIn.setOnClickListener(v -> onBackPressed());
         binding.buttonSignUp.setOnClickListener(v-> {
@@ -77,6 +94,20 @@ public class SignUpActivity extends AppCompatActivity {
                                     binding.inputEmail.setHintTextColor(colorEror);
                                     showToast("Email is exist. Please change other email!");
                                 }else {
+                                    //Cấp quyền đoc, ghi file đối với API >= 23
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
+                                            requestPermissions(new String[] {
+                                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                            }, 123);
+                                        }
+                                    }
+                                    //Cấp quyền ghi file đối với API >= 30
+                                    if (Build.VERSION.SDK_INT >= 30 && !Environment.isExternalStorageManager()) {
+                                        Uri uri = Uri.parse("package:" + BuildConfig.APPLICATION_ID);
+                                        Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
+                                        startActivity(intent);
+                                    }
                                     signUp();
                                 }
                             } else {
@@ -101,12 +132,37 @@ public class SignUpActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void signUp(){
         HashMap<String, Object> user = new HashMap<>();
         user.put(Constants.KEY_NAME, binding.inputName.getText().toString());
         user.put(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
         user.put(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
         user.put(Constants.KEY_IMAGE, encodedImage);
+        KeyPair keyPair = KeyUtils.generateECKeys();
+        try {
+            if (keyPair != null) {
+                KeyUtils.savePrivateKey(
+                        binding.inputEmail.getText().toString(),
+                        binding.inputPassword.getText().toString(),
+                        keyPair
+                );
+            }
+        } catch (CertificateException e) {
+            throw new RuntimeException(e);
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (SignatureException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchProviderException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
         db.collection(Constants.KEY_COLLECTION_USERS)
                 .add(user)
                 .addOnSuccessListener(documentReference -> {
