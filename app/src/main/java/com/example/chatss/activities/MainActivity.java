@@ -122,6 +122,14 @@ public class MainActivity extends BaseActivity implements ConversionListener {
         conversations = new ArrayList<>();
         conversationsAdapter = new RecentConversationsAdapter(conversations, this);
         binding.conversationRecyclerView.setAdapter(conversationsAdapter);
+        binding.fabNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), ChatGroupMainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
         database = FirebaseFirestore.getInstance();
     }
     private void setListeners(){
@@ -139,6 +147,7 @@ public class MainActivity extends BaseActivity implements ConversionListener {
         byte[] bytes = Base64.decode(preferenceManager.getString(Constants.KEY_IMAGE), Base64.DEFAULT);
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         binding.imageProfile.setImageBitmap(bitmap);
+
     }
     
     private void showToast(String message){
