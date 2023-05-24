@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:background="@color/primary"
     tools:context=".activities.CreateGroupActivity">
 
     <androidx.appcompat.widget.AppCompatImageView
@@ -19,7 +18,7 @@
         android:src="@drawable/ic_back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:tint="@color/white"/>
+        android:tint="@color/black"/>
 
 
     <TextView
@@ -27,7 +26,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/create_group"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textSize="@dimen/_14sdp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/imageBack"
@@ -45,12 +44,22 @@
     android:layout_marginTop="15dp"
     app:layout_constraintTop_toBottomOf="@id/textView"
     app:layout_constraintBottom_toTopOf="@+id/searchFrame">
+    <ImageView
+        android:id="@+id/imgchitiet"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="15dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/people">
+
+    </ImageView>
     <EditText
         android:hint="Đặt tên nhóm"
         android:background="@color/white"
         android:id="@+id/edtCreateGroup"
-        android:layout_width="250dp"
-        android:layout_height="30dp"/>
+        android:layout_width="200dp"
+        android:layout_marginLeft="15dp"
+        android:layout_height="match_parent"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="40dp"
@@ -86,8 +95,6 @@
             android:queryHint="Search Here"
             app:iconifiedByDefault="false"
             app:layout_constraintEnd_toEndOf="parent"
-
-
             />
     </FrameLayout>
 

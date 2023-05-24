@@ -56,6 +56,14 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
     }
     public void init(){
         //database = FirebaseFirestore.getInstance();
+        binding.fabNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
     }
     private void loadUserDetails() {
         binding.textName.setText("Group");

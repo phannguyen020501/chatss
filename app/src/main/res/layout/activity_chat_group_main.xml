@@ -53,6 +53,7 @@
 
 
     <FrameLayout
+        android:id="@+id/frameLayout2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/_16sdp"
@@ -90,5 +91,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="@color/white"/>
-
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabNext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/_24sdp"
+        android:layout_marginBottom="@dimen/_24sdp"
+        android:backgroundTint="@color/primary"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/arrow_into"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/frameLayout2"
+        app:tint="@color/white" />
 </androidx.constraintlayout.widget.ConstraintLayout>
