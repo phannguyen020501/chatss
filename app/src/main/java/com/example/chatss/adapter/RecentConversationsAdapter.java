@@ -90,7 +90,7 @@ public class RecentConversationsAdapter extends RecyclerView.Adapter<RecentConve
                 user.id = chatMessage.conversionId;
                 user.name = chatMessage.conversionName;
                 user.image = chatMessage.conversionImage;
-
+                user.publicKey = chatMessage.conversionPublicKey;
                 conversionListener.onConversionClicked(user);
 
             });

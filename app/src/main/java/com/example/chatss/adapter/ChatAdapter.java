@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.databinding.ItemContainerReceivedMessageBinding;
 import com.example.chatss.databinding.ItemContainerSentMessageBinding;
 import com.example.chatss.listeners.DownloadImageListener;
@@ -111,7 +113,6 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 //Log.d("aaaaP", chatMessage.message + "   " + position + "   vt:" + chatMessages.size());
                 binding.textDateTime.setVisibility(View.GONE);
                 binding.textSeen.setVisibility(View.GONE);
-
                 if(chatMessage.type.equals("image")){
                     binding.textMessage.setVisibility(View.GONE);
                     binding.imgChat.setVisibility(View.VISIBLE);
@@ -123,7 +124,6 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
                             } else {
                                 binding.textDateTime.setVisibility(View.VISIBLE);
                                 binding.textDateTime.setText(chatMessage.dateTime);
-
                             }
                         }
                     });
@@ -175,53 +175,53 @@ public class ChatAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHolder> 
         private void isSeen(ChatMessage chat, int position){
             database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).whereEqualTo(Constants.MESS_SENDER_ID, chat.senderId)
                     .whereEqualTo(Constants.MESS_RECEIVER_ID, chat.receiverId)
-                    .addSnapshotListener(
-                            (value, error) -> {
-                                if (error != null) {
-                                    return;
-                                }
-                                if (value != null) {
-                                    for (DocumentChange documentChange : value.getDocumentChanges()) {
-
-                                        if (getAdapterPosition() == position) {
-                                            if (Boolean.TRUE.equals(documentChange.getDocument().getBoolean(Constants.isSeen))) {
-                                                binding.textDateTime.setVisibility(View.VISIBLE);
-                                                binding.textDateTime.setText(chat.dateTime);
-                                                binding.textSeen.setVisibility(View.VISIBLE);
-                                                binding.textSeen.setText("Seen");
-
-                                            } else {
-                                                binding.textDateTime.setVisibility(View.VISIBLE);
-                                                binding.textDateTime.setText(chat.dateTime);
-                                                binding.textSeen.setVisibility(View.VISIBLE);
-                                                binding.textSeen.setText("Delivered");
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                    );
-//                    .get()
-//                    .addOnCompleteListener(task -> {
-//                        if(task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0 ) {
-//                            DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
-//                            if(getAdapterPosition()==position)
-//                            {
-//                                if(documentSnapshot.getBoolean(Constants.isSeen)) {
-//                                    binding.textDateTime.setVisibility(View.VISIBLE);
-//                                    binding.textDateTime.setText(chat.dateTime);
-//                                    binding.textSeen.setVisibility(View.VISIBLE);
-//                                    binding.textSeen.setText("Seen");
+//                    .addSnapshotListener(
+//                            (value, error) -> {
+//                                if (error != null) {
+//                                    return;
+//                                }
+//                                if (value != null) {
+//                                    for (DocumentChange documentChange : value.getDocumentChanges()) {
 //
-//                                } else{
-//                                    binding.textDateTime.setVisibility(View.VISIBLE);
-//                                    binding.textDateTime.setText(chat.dateTime);
-//                                    binding.textSeen.setVisibility(View.VISIBLE);
-//                                    binding.textSeen.setText("Delivered");
+//                                        if (getAdapterPosition() == position) {
+//                                            if (Boolean.TRUE.equals(documentChange.getDocument().getBoolean(Constants.isSeen))) {
+//                                                binding.textDateTime.setVisibility(View.VISIBLE);
+//                                                binding.textDateTime.setText(chat.dateTime);
+//                                                binding.textSeen.setVisibility(View.VISIBLE);
+//                                                binding.textSeen.setText("Seen");
+//
+//                                            } else {
+//                                                binding.textDateTime.setVisibility(View.VISIBLE);
+//                                                binding.textDateTime.setText(chat.dateTime);
+//                                                binding.textSeen.setVisibility(View.VISIBLE);
+//                                                binding.textSeen.setText("Delivered");
+//                                            }
+//                                        }
+//                                    }
 //                                }
 //                            }
-//                        }
-//                    });
+//                    );
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if(task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0 ) {
+                            DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
+                            if(getAdapterPosition()==position)
+                            {
+                                if(documentSnapshot.getBoolean(Constants.isSeen)) {
+                                    binding.textDateTime.setVisibility(View.VISIBLE);
+                                    binding.textDateTime.setText(chat.dateTime);
+                                    binding.textSeen.setVisibility(View.VISIBLE);
+                                    binding.textSeen.setText("Seen");
+
+                                } else{
+                                    binding.textDateTime.setVisibility(View.VISIBLE);
+                                    binding.textDateTime.setText(chat.dateTime);
+                                    binding.textSeen.setVisibility(View.VISIBLE);
+                                    binding.textSeen.setText("Delivered");
+                                }
+                            }
+                        }
+                    });
 
         }
     }

@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.adapter.RecentConversationsAdapter;
 import com.example.chatss.databinding.ActivityMainBinding;
 import com.example.chatss.listeners.ConversionListener;
@@ -45,11 +46,15 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.checkerframework.checker.units.qual.C;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+
+import javax.crypto.SecretKey;
 
 
 public class MainActivity extends BaseActivity implements ConversionListener {
@@ -62,7 +67,7 @@ public class MainActivity extends BaseActivity implements ConversionListener {
     private RecentConversationsAdapter conversationsAdapter;
     private FirebaseFirestore database;
     private ListenerRegistration registration;
-
+    private String priKeyStr;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,8 +77,14 @@ public class MainActivity extends BaseActivity implements ConversionListener {
 
         askNotificationPermission();
         preferenceManager = new PreferenceManager(getApplicationContext());
-        init();
+        priKeyStr = preferenceManager.getString(Constants.KEY_PRIVATE_KEY);
         loadUserDetails();
+        if (preferenceManager.getString(Constants.KEY_PRIVATE_KEY) == null){
+            binding.progressBar.setVisibility(View.GONE);
+            binding.imageSignOut.setOnClickListener(v -> signOut());
+            return;
+        }
+        init();
         getToken();
         setListeners();
         listenConversations();
@@ -227,20 +238,41 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                         chatMessage.conversionId = documentChange.getDocument().getString(Constants.KEY_RECEIVER_ID);
                         chatMessage.conversionImage = documentChange.getDocument().getString(Constants.KEY_RECEIVER_IMAGE);
                         chatMessage.conversionName = documentChange.getDocument().getString(Constants.KEY_RECEIVER_NAME);
+                        chatMessage.conversionPublicKey = documentChange.getDocument().getString(Constants.KEY_RECEIVER_PUBLIC_KEY);
+
                     }else {
                         getInitStatusUser(senderId ,chatMessage);
                         chatMessage.conversionImage = documentChange.getDocument().getString(Constants.KEY_SENDER_IMAGE);
                         chatMessage.conversionName = documentChange.getDocument().getString(Constants.KEY_SENDER_NAME);
                         chatMessage.conversionId = documentChange.getDocument().getString(Constants.KEY_SENDER_ID);
+                        chatMessage.conversionPublicKey = documentChange.getDocument().getString(Constants.KEY_SENDER_PUBLIC_KEY);
 
                     }
-                    chatMessage.message = documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE);
+
+                    try {
+                        PrivateKey priKey = ECCc.stringToPrivateKey(priKeyStr);
+                        PublicKey pubKey = ECCc.stringToPublicKey(chatMessage.conversionPublicKey);
+                        SecretKey secretKey = ECCc.generateSharedSecret(priKey, pubKey);
+                        chatMessage.message = ECCc.decryptString(secretKey,documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        chatMessage.message = "";
+                    }
+
                     chatMessage.dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
                     conversations.add(chatMessage);
                 }else if (documentChange.getType() == DocumentChange.Type.MODIFIED){
                     for (int i = 0; i < conversations.size(); i++){
                         if (conversations.get(i).senderId.equals(senderId) && conversations.get(i).receiverId.equals(receiverId)){
-
+                            try {
+                                PrivateKey priKey = ECCc.stringToPrivateKey(priKeyStr);
+                                PublicKey pubKey = ECCc.stringToPublicKey(conversations.get(i).conversionPublicKey);
+                                SecretKey secretKey = ECCc.generateSharedSecret(priKey, pubKey);
+                                conversations.get(i).message = ECCc.decryptString(secretKey,documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                conversations.get(i).message = "";
+                            }
                             conversations.get(i).message = documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE);
                             conversations.get(i).dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
                             break;
@@ -299,6 +331,13 @@ public class MainActivity extends BaseActivity implements ConversionListener {
     }
 
     private void signOut(){
+        if (registration == null){
+            preferenceManager.clear();
+            startActivity(new Intent(getApplicationContext(), SignInActivity.class));
+            finish();
+            return;
+
+        }
         registration.remove();
         showToast("Signing out...");
         FirebaseFirestore database = FirebaseFirestore.getInstance();

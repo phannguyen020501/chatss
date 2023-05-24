@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.chatss.BuildConfig;
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.R;
 import com.example.chatss.databinding.ActivitySignInBinding;
 import com.example.chatss.utilities.Constants;
@@ -92,14 +93,14 @@ public class SignInActivity extends AppCompatActivity {
 //        }
         );
         binding.buttonSignIn.setOnClickListener(v->{
-//            if(isValidSignInDetails()){
-//                signIn();
-//            }
-            try {
-                tryr();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            if(isValidSignInDetails()){
+                signIn();
             }
+//            try {
+//                tryr();
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
 //            try {
 //                main();
 //            } catch (Exception e) {
@@ -308,6 +309,26 @@ public class SignInActivity extends AppCompatActivity {
                         preferenceManager.putString(Constants.KEY_NAME, documentSnapshot.getString(Constants.KEY_NAME));
                         preferenceManager.putString(Constants.KEY_IMAGE, documentSnapshot.getString(Constants.KEY_IMAGE));
                         preferenceManager.putString(Constants.KEY_EMAIL, documentSnapshot.getString(Constants.KEY_EMAIL));
+                        preferenceManager.putString(Constants.KEY_PUBLIC_KEY, documentSnapshot.getString(Constants.KEY_PUBLIC_KEY));
+
+                        //Lấy private Key từ KeyStore
+                        PrivateKey priKey = ECCc.getPrivateKeyFromKeyStore(
+                                getApplicationContext(),
+                                binding.inputEmail.getText().toString(),
+                                binding.inputPassword.getText().toString()
+                        );
+                        //Lưu privateKey vào Preference cho dễ gọi lại, tăng hiệu năng máy
+                        if (priKey != null){
+                            try {
+                                String priKeyStr = ECCc.privateKeyToString(priKey);
+                                preferenceManager.putString(Constants.KEY_PRIVATE_KEY,priKeyStr);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                showToast("Cannot parse PrivateKey to String");
+                            }
+                        }
+
+
                         if (documentSnapshot.getString(Constants.KEY_PHONE) != null){
                             preferenceManager.putString(Constants.KEY_PHONE, documentSnapshot.getString(Constants.KEY_PHONE));
                         }

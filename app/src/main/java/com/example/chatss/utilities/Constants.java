@@ -67,6 +67,12 @@ public class Constants {
 
     public static HashMap<String, String> remotoMsgHeaders = null;
 
+    public static final String KEY_PUBLIC_KEY = "publicKey";
+    public static final String KEY_RECEIVER_PUBLIC_KEY = "receiverPublicKey";
+    public static final String KEY_SENDER_PUBLIC_KEY = "senderPublicKey";
+
+    public static final String KEY_PRIVATE_KEY = "privateKey";
+
     public static HashMap<String, String> getRemoteMsgHeaders(){
         if(remotoMsgHeaders == null){
             remotoMsgHeaders = new HashMap<>();

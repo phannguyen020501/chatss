@@ -24,6 +24,7 @@ import android.widget.MediaController;
 import android.widget.Toast;
 
 import com.example.chatss.BuildConfig;
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.R;
 import com.example.chatss.databinding.ActivitySignInBinding;
 import com.example.chatss.databinding.ActivitySignUpBinding;
@@ -60,7 +61,6 @@ public class SignUpActivity extends AppCompatActivity {
     FirebaseFirestore db;
     Boolean isExistEmail;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,7 +73,6 @@ public class SignUpActivity extends AppCompatActivity {
 
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void setListeners(){
         binding.textSignIn.setOnClickListener(v -> onBackPressed());
         binding.buttonSignUp.setOnClickListener(v-> {
@@ -94,21 +93,15 @@ public class SignUpActivity extends AppCompatActivity {
                                     binding.inputEmail.setHintTextColor(colorEror);
                                     showToast("Email is exist. Please change other email!");
                                 }else {
-                                    //Cấp quyền đoc, ghi file đối với API >= 23
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
-                                            requestPermissions(new String[] {
-                                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                                            }, 123);
-                                        }
+                                    try {
+                                        signUp();
+                                    } catch (IOException | CertificateException |
+                                             KeyStoreException | NoSuchAlgorithmException |
+                                             SignatureException | NoSuchProviderException |
+                                             InvalidKeyException e) {
+                                        showToast("Save Private Key failure!!!");
+                                        e.printStackTrace();
                                     }
-                                    //Cấp quyền ghi file đối với API >= 30
-                                    if (Build.VERSION.SDK_INT >= 30 && !Environment.isExternalStorageManager()) {
-                                        Uri uri = Uri.parse("package:" + BuildConfig.APPLICATION_ID);
-                                        Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
-                                        startActivity(intent);
-                                    }
-                                    signUp();
                                 }
                             } else {
                                 // Xử lý lỗi truy vấn
@@ -132,37 +125,27 @@ public class SignUpActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private void signUp(){
+    private void signUp() throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
+        KeyPair keyPair = ECCc.generateECKeys();
+        String publicKeyString = ECCc.publicKeyToString(keyPair.getPublic());
+        System.out.println(ECCc.privateKeyToString(keyPair.getPrivate()));
+        String priKeyStr = ECCc.privateKeyToString(keyPair.getPrivate());
+
+
         HashMap<String, Object> user = new HashMap<>();
         user.put(Constants.KEY_NAME, binding.inputName.getText().toString());
         user.put(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
         user.put(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
         user.put(Constants.KEY_IMAGE, encodedImage);
-        KeyPair keyPair = KeyUtils.generateECKeys();
-        try {
-            if (keyPair != null) {
-                KeyUtils.savePrivateKey(
-                        binding.inputEmail.getText().toString(),
-                        binding.inputPassword.getText().toString(),
-                        keyPair
-                );
-            }
-        } catch (CertificateException e) {
-            throw new RuntimeException(e);
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (SignatureException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchProviderException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
-        }
+        user.put(Constants.KEY_PUBLIC_KEY, publicKeyString);
+
+        //lưu private key
+        ECCc.savePrivateKey(getApplicationContext(),
+                binding.inputEmail.getText().toString(),
+                binding.inputPassword.getText().toString(),
+                keyPair
+        );
+
         db.collection(Constants.KEY_COLLECTION_USERS)
                 .add(user)
                 .addOnSuccessListener(documentReference -> {
@@ -172,10 +155,11 @@ public class SignUpActivity extends AppCompatActivity {
                     preferenceManager.putString(Constants.KEY_NAME,binding.inputName.getText().toString());
                     preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
                     preferenceManager.putString(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
+                    preferenceManager.putString(Constants.KEY_PRIVATE_KEY, priKeyStr);
+                    preferenceManager.putString(Constants.KEY_PUBLIC_KEY, publicKeyString);
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
-
                 })
                 .addOnFailureListener(exception ->{
                     loading(false);

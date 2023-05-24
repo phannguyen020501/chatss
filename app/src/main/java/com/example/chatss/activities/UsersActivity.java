@@ -95,6 +95,7 @@ public class UsersActivity extends BaseActivity implements UserListener {
                             user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                             user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                             user.id = queryDocumentSnapshot.getId();
+                            user.publicKey = queryDocumentSnapshot.getString(Constants.KEY_PUBLIC_KEY);
                             if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
                                 user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
                             }

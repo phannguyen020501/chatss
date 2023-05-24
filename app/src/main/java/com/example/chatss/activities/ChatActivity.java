@@ -30,6 +30,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.R;
 import com.example.chatss.adapter.ChatAdapter;
 import com.example.chatss.databinding.ActivityChatBinding;
@@ -59,6 +61,7 @@ import com.google.firebase.storage.UploadTask;
 import com.google.firestore.v1.Document;
 import com.squareup.picasso.Picasso;
 
+import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi;
 import org.checkerframework.checker.units.qual.C;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -70,6 +73,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -80,6 +85,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+
+import javax.crypto.SecretKey;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -100,7 +107,8 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
 
     private String encodedImage, imgUrl, myId;
 
-    private Bitmap bitmapImg ;
+    private String priKeyStr;
+    private SecretKey secretKey;
 
     private Uri imgUri;
 
@@ -115,16 +123,32 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
         super.onCreate(savedInstanceState);
         binding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        setListeners();
+
+        database = FirebaseFirestore.getInstance();
+        preferenceManager = new PreferenceManager(getApplicationContext());
         loadReceiverDetails();
+        binding.imageBack.setOnClickListener(view -> onBackPressed());
+        if (receiverUser.publicKey == null){
+            binding.progressBar.setVisibility(View.GONE);
+            return;
+        }
         init();
-        updateIsSeen();
-        listenMessages();
-//        setChange();
+        try {
+            // Lấy ra privateKey từ Preference
+            PrivateKey priKey = ECCc.stringToPrivateKey(priKeyStr);
+            PublicKey pubKey = ECCc.stringToPublicKey(receiverUser.publicKey);
+            secretKey = ECCc.generateSharedSecret(priKey, pubKey);
+            setListeners();
+            updateIsSeen();
+            listenMessages();
+            setChange();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showToast("Error while create secret key");
+        }
     }
 
     private void init() {
-        preferenceManager = new PreferenceManager(getApplicationContext());
         chatMessages = new ArrayList<>();
         chatAdapter = new ChatAdapter(
                 chatMessages,
@@ -133,8 +157,11 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                 ChatActivity.this
         );
         binding.chatRecyclerView.setAdapter(chatAdapter);
-        database = FirebaseFirestore.getInstance();
+
         myId = preferenceManager.getString(Constants.KEY_USED_ID);
+
+        priKeyStr = preferenceManager.getString(Constants.KEY_PRIVATE_KEY);
+
     }
 
     private void isChat(Boolean on){
@@ -171,25 +198,33 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
         HashMap<String , Object> message = new HashMap<>();
         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
         message.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
-        message.put(Constants.KEY_MESSAGE, binding.inputMessage.getText().toString());
+
+        //Mã hóa tin nhắn trước khi gửi lên server
+        String encryptMess = ECCc.encryptString(secretKey, binding.inputMessage.getText().toString());
+        message.put(Constants.KEY_MESSAGE, encryptMess);
+
         message.put(Constants.TYPE_MESSAGES_SEND, "text");
         message.put(Constants.KEY_TIMESTAMP, new Date());
         //message.put(Constants.isSeen, false);
         database.collection(Constants.KEY_COLLECTION_CHAT).add(message);
         if (conversionId != null){
-            updateConversion(binding.inputMessage.getText().toString());
+            updateConversion(encryptMess);
         }else {
             HashMap<String, Object> conversion = new HashMap<>();
             conversion.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
             conversion.put(Constants.KEY_SENDER_NAME, preferenceManager.getString(Constants.KEY_NAME));
             conversion.put(Constants.KEY_SENDER_IMAGE, preferenceManager.getString(Constants.KEY_IMAGE));
+            conversion.put(Constants.KEY_SENDER_PUBLIC_KEY, preferenceManager.getString(Constants.KEY_PUBLIC_KEY));
             conversion.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
             conversion.put(Constants.KEY_RECEIVER_NAME, receiverUser.name);
             conversion.put(Constants.KEY_RECEIVER_IMAGE, receiverUser.image);
+            conversion.put(Constants.KEY_RECEIVER_PUBLIC_KEY, receiverUser.publicKey);
             conversion.put(Constants.isSeen, false);
             conversion.put(myId, true);
             conversion.put(receiverUser.id, false);
-            conversion.put(Constants.KEY_LAST_MESSAGE, binding.inputMessage.getText().toString());
+
+
+            conversion.put(Constants.KEY_LAST_MESSAGE, encryptMess);
             conversion.put(Constants.KEY_TIMESTAMP, new Date());
             conversion.put(Constants.MESS_RECEIVER_ID, receiverUser.id);
             conversion.put(Constants.MESS_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
@@ -204,7 +239,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                 data.put(Constants.KEY_USED_ID, preferenceManager.getString(Constants.KEY_USED_ID));
                 data.put(Constants.KEY_NAME, preferenceManager.getString(Constants.KEY_NAME));
                 data.put(Constants.KEY_FCM_TOKEN, preferenceManager.getString(Constants.KEY_FCM_TOKEN));
-                data.put(Constants.KEY_MESSAGE, binding.inputMessage.getText().toString());
+                data.put(Constants.KEY_MESSAGE, encryptMess);
 
                 JSONObject body = new JSONObject();
                 body.put(Constants.REMOTE_MSG_DATA,data);
@@ -312,7 +347,8 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                    chatMessage.senderId = documentChange.getDocument().getString(Constants.KEY_SENDER_ID);
                    chatMessage.receiverId = documentChange.getDocument().getString(Constants.KEY_RECEIVER_ID);
                    chatMessage.type = documentChange.getDocument().getString(Constants.TYPE_MESSAGES_SEND);
-                   chatMessage.message = documentChange.getDocument().getString(Constants.KEY_MESSAGE);
+                   String enMess =documentChange.getDocument().getString(Constants.KEY_MESSAGE);
+                   chatMessage.message = ECCc.decryptString(secretKey, enMess);
                    chatMessage.dateTime = getReadableDateTime(documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP));
                    chatMessage.dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
 
@@ -352,7 +388,6 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
     }
 
     private void setListeners(){
-        binding.imageBack.setOnClickListener(view -> onBackPressed());
         binding.layoutSend.setOnClickListener(view -> {
                     if (!binding.inputMessage.getText().toString().trim().isEmpty()) {
                         sendMessage();
@@ -419,9 +454,13 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                         imgUrl = uri.toString();
 
                         HashMap<String , Object> message = new HashMap<>();
+                        //Mã hóa tin nhắn trước khi gửi lên server
+                        message.put(Constants.KEY_MESSAGE, ECCc.encryptString(secretKey, imgUrl));
+
                         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
                         message.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
-                        message.put(Constants.KEY_MESSAGE, imgUrl);
+
+
                         message.put(Constants.KEY_TIMESTAMP, new Date());
                         message.put(Constants.TYPE_MESSAGES_SEND, "image");
                         //message.put(Constants.isSeen, false);
@@ -434,6 +473,8 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                             conversion.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
                             conversion.put(Constants.KEY_SENDER_NAME, preferenceManager.getString(Constants.KEY_NAME));
                             conversion.put(Constants.KEY_SENDER_IMAGE, preferenceManager.getString(Constants.KEY_IMAGE));
+                            message.put(Constants.KEY_SENDER_PUBLIC_KEY, preferenceManager.getString(Constants.KEY_PUBLIC_KEY));
+                            message.put(Constants.KEY_RECEIVER_PUBLIC_KEY, receiverUser.publicKey);
                             conversion.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
                             conversion.put(Constants.KEY_RECEIVER_NAME, receiverUser.name);
                             conversion.put(Constants.isSeen, false);
