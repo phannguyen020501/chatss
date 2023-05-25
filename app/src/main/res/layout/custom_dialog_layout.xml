@@ -40,20 +40,21 @@
         android:gravity="right"
         android:orientation="horizontal"
         android:layout_marginBottom="@dimen/_4sdp">
-        <Button
-            android:id="@+id/btn_OK"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/_8sdp"
-            android:text="OK"
-            />
+
         <Button
             android:id="@+id/btn_Cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/_20sdp"
+            android:layout_marginEnd="@dimen/_8sdp"
             android:backgroundTint="@color/red"
             android:text="Cancel"
+            />
+        <Button
+            android:id="@+id/btn_OK"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_20sdp"
+            android:text="OK"
             />
 
     </LinearLayout>

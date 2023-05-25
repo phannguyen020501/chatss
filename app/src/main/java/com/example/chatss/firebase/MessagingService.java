@@ -18,15 +18,21 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.example.chatss.BuildConfig;
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.R;
 import com.example.chatss.activities.ChatActivity;
 import com.example.chatss.models.User;
 import com.example.chatss.utilities.Constants;
+import com.example.chatss.utilities.PreferenceManager;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.ConcurrentModificationException;
 import java.util.Random;
+
+import javax.crypto.SecretKey;
 
 public class MessagingService extends FirebaseMessagingService {
     public static String channelId = "chat_message";
@@ -45,6 +51,7 @@ public class MessagingService extends FirebaseMessagingService {
         user.id = message.getData().get(Constants.KEY_USED_ID);
         user.name = message.getData().get(Constants.KEY_NAME);
         user.token = message.getData().get(Constants.KEY_FCM_TOKEN);
+        user.publicKey = message.getData().get(Constants.KEY_PUBLIC_KEY);
 
         int notificationId = new Random().nextInt();
 
@@ -61,17 +68,29 @@ public class MessagingService extends FirebaseMessagingService {
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
 
-        Intent intent = new Intent(this, ChatActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        intent.putExtra(Constants.KEY_USER, user);
-        @SuppressLint("UnspecifiedImmutableFlag") PendingIntent pendingIntent = PendingIntent.getActivity(this, 1, intent, 0);
+//        Intent intent = new Intent(this, ChatActivity.class);
+//        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//        intent.putExtra(Constants.KEY_USER, user);
+//        @SuppressLint("UnspecifiedImmutableFlag") PendingIntent pendingIntent = PendingIntent.getActivity(this, 1, intent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId);
         builder.setSmallIcon(R.drawable.ic_notification);
         builder.setContentTitle(user.name);
-        builder.setContentText(message.getData().get(Constants.KEY_MESSAGE));
+
+        //Giải mã văn bản
+        String plainMess = "";
+        try {
+            String priKeyStr = new PreferenceManager(getApplicationContext()).getString(Constants.KEY_PRIVATE_KEY);
+            PrivateKey priKey = ECCc.stringToPrivateKey(priKeyStr);
+            PublicKey pubKey = ECCc.stringToPublicKey(user.publicKey);
+            SecretKey secretKey = ECCc.generateSharedSecret(priKey, pubKey);
+            plainMess = ECCc.decryptString(secretKey,message.getData().get(Constants.KEY_MESSAGE));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        builder.setContentText(plainMess) ;
         builder.setStyle(new NotificationCompat.BigTextStyle().bigText(
-                message.getData().get(Constants.KEY_MESSAGE)
+                plainMess
         ));
         builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
         builder.setContentIntent(resultPendingIntent);

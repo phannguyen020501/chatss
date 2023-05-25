@@ -18,7 +18,7 @@
         android:src="@drawable/ic_back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:tint="@color/black"/>
+        android:tint="@color/primary"/>
 
 
     <TextView
@@ -26,18 +26,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/create_group"
-        android:textColor="@color/black"
+        android:textColor="@color/primary"
         android:textSize="@dimen/_14sdp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/imageBack"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/imageBack" />
+
 <LinearLayout
     android:id="@+id/nameGroup"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
+    android:background="@drawable/background_input"
     android:orientation="horizontal"
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp"
@@ -55,21 +56,22 @@
     </ImageView>
     <EditText
         android:hint="Đặt tên nhóm"
-        android:background="@color/white"
         android:id="@+id/edtCreateGroup"
-        android:layout_width="200dp"
+        android:background="@color/input_background"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_marginLeft="15dp"
         android:layout_height="match_parent"/>
     <Button
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:background="@color/white"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
         android:text="Create"
-        android:textSize="8sp"
+        android:textSize="@dimen/_11sdp"
         android:layout_marginTop="5dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="5dp"
-        android:id="@+id/btnCreateGroup"/>
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:id="@+id/btnCreateGroup"
+        android:layout_gravity="center_horizontal"/>
 </LinearLayout>
 
     <FrameLayout
@@ -90,7 +92,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_alignParentTop="true"
-            android:background="@color/white"
+
             android:iconifiedByDefault="false"
             android:queryHint="Search Here"
             app:iconifiedByDefault="false"

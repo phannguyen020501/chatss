@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="GradleMigrationSettings" migrationVersion="1" />
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-<<<<<<< HEAD
         <option name="gradleJvm" value="Embedded JDK" />
-=======
-        <option name="gradleJvm" value="Android Studio default JDK" />
->>>>>>> aef96c2c93e7ea9d8c710c4291d3a2a160a3ba4f
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />

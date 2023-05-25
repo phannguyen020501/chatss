@@ -4,42 +4,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <TextView
-        android:text="change group name"
-        android:textSize="@dimen/_23sdp"
-        android:layout_gravity="center"
-        android:textAlignment="center"
-        android:textColor="@color/primary_dark"
-        android:textStyle="bold"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-    <EditText
-        android:id="@+id/usernameDialog"
-        android:inputType="textEmailAddress"
+        android:text="Change group name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="4dp"
-        android:hint="name group" />
+        android:textColor="@color/primary"
+        android:textSize="@dimen/_20ssp"
+        android:textStyle="bold"
+        android:layout_marginStart="@dimen/_21sdp"
+        android:paddingTop="@dimen/_12sdp"
+        android:paddingBottom="@dimen/_12sdp"/>
+    <EditText
+        android:id="@+id/usernameDialog"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_40sdp"
+        android:layout_marginStart="@dimen/_21sdp"
+        android:layout_marginBottom="@dimen/_11sdp"
+        android:layout_marginEnd="@dimen/_21sdp"
+        android:paddingStart="@dimen/_16sdp"
+        android:paddingEnd="@dimen/_16sdp"
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        android:textSize="@dimen/_14ssp"
+        android:background="@drawable/background_input"
+        android:hint="Name group" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="35dp"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/_4sdp">
         <Button
             android:id="@+id/btn_cancel_dialog"
-            android:layout_width="100dp"
-            android:text="Hủy"
-            android:textSize="10sp"
-            android:layout_height="match_parent"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_8sdp"
+            android:backgroundTint="@color/red"
+            android:text="Cancel"/>
         <Button
             android:id="@+id/btn_confirmation_dialog"
-            android:layout_width="100dp"
-            android:layout_marginLeft="10dp"
-            android:textSize="10sp"
-            android:text="Xác nhận"
-            android:layout_height="match_parent"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_20sdp"
+            android:text="OK"/>
     </LinearLayout>
 </LinearLayout>

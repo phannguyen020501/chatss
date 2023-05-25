@@ -240,6 +240,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                 data.put(Constants.KEY_NAME, preferenceManager.getString(Constants.KEY_NAME));
                 data.put(Constants.KEY_FCM_TOKEN, preferenceManager.getString(Constants.KEY_FCM_TOKEN));
                 data.put(Constants.KEY_MESSAGE, encryptMess);
+                data.put(Constants.KEY_PUBLIC_KEY, preferenceManager.getString(Constants.KEY_PUBLIC_KEY));
 
                 JSONObject body = new JSONObject();
                 body.put(Constants.REMOTE_MSG_DATA,data);

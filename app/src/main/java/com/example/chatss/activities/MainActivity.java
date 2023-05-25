@@ -273,7 +273,6 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                                 e.printStackTrace();
                                 conversations.get(i).message = "";
                             }
-                            conversations.get(i).message = documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE);
                             conversations.get(i).dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
                             break;
                         }

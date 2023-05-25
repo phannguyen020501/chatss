@@ -1,6 +1,7 @@
 package com.example.chatss.ECC;
 
 import android.content.Context;
+import android.util.Base64;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -237,56 +238,117 @@ public class ECCc {
             return null;
         }
     }
+    public static String encryptString(SecretKey secretKey, String data) {
+        String encryptedText = "";
 
-    public static String encryptString(SecretKey key, String plainText) {
+        if (data == null || secretKey == null)
+            return encryptedText;
+
         try {
-            IvParameterSpec ivSpec = new IvParameterSpec(iv);
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
-            byte[] plainTextBytes = plainText.getBytes(StandardCharsets.UTF_8);
-            byte[] cipherText;
+            Cipher encryptCipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+            encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, new SecureRandom());//new IvParameterSpec(getIV()) - if you want custom IV
 
-            cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);
-            cipherText = new byte[cipher.getOutputSize(plainTextBytes.length)];
-            int encryptLength = cipher.update(plainTextBytes, 0,
-                    plainTextBytes.length, cipherText, 0);
-            encryptLength += cipher.doFinal(cipherText, encryptLength);
+            //encrypted data:
+            byte[] encryptedBytes = encryptCipher.doFinal(data.getBytes("UTF-8"));
 
-            return bytesToHex(cipherText);
-        } catch (NoSuchAlgorithmException | NoSuchProviderException
-                 | NoSuchPaddingException | InvalidKeyException
-                 | InvalidAlgorithmParameterException
-                 | ShortBufferException
-                 | IllegalBlockSizeException | BadPaddingException e) {
+            //take IV from this cipher
+            byte[] iv = encryptCipher.getIV();
+
+            //append Initiation Vector as a prefix to use it during decryption:
+            byte[] combinedPayload = new byte[iv.length + encryptedBytes.length];
+
+            //populate payload with prefix IV and encrypted data
+            System.arraycopy(iv, 0, combinedPayload, 0, iv.length);
+            System.arraycopy(encryptedBytes, 0, combinedPayload, iv.length, encryptedBytes.length);
+
+            encryptedText = Base64.encodeToString(combinedPayload, Base64.DEFAULT);
+
+        } catch (NoSuchAlgorithmException | BadPaddingException | NoSuchPaddingException | IllegalBlockSizeException | UnsupportedEncodingException | InvalidKeyException e) {
             e.printStackTrace();
-            return null;
         }
+
+        return encryptedText;
     }
 
-    public static String decryptString(SecretKey key, String cipherText) {
+    public static String decryptString(SecretKey secretKey, String encryptedString) {
+        String decryptedText = "";
+
+        if (encryptedString == null || secretKey == null)
+            return decryptedText;
+
         try {
-            Key decryptionKey = new SecretKeySpec(key.getEncoded(),
-                    key.getAlgorithm());
-            IvParameterSpec ivSpec = new IvParameterSpec(iv);
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
-            byte[] cipherTextBytes = hexToBytes(cipherText);
-            byte[] plainText;
+            //separate prefix with IV from the rest of encrypted data
+            byte[] encryptedPayload = Base64.decode(encryptedString, Base64.DEFAULT);
+            byte[] iv = new byte[16];
+            byte[] encryptedBytes = new byte[encryptedPayload.length - iv.length];
 
-            cipher.init(Cipher.DECRYPT_MODE, decryptionKey, ivSpec);
-            plainText = new byte[cipher.getOutputSize(cipherTextBytes.length)];
-            int decryptLength = cipher.update(cipherTextBytes, 0,
-                    cipherTextBytes.length, plainText, 0);
-            decryptLength += cipher.doFinal(plainText, decryptLength);
+            //populate iv with bytes:
+            System.arraycopy(encryptedPayload, 0, iv, 0, 16);
 
-            return new String(plainText, "UTF-8");
-        } catch (NoSuchAlgorithmException | NoSuchProviderException
-                 | NoSuchPaddingException | InvalidKeyException
-                 | InvalidAlgorithmParameterException
-                 | IllegalBlockSizeException | BadPaddingException
-                 | ShortBufferException | UnsupportedEncodingException e) {
+            //populate encryptedBytes with bytes:
+            System.arraycopy(encryptedPayload, iv.length, encryptedBytes, 0, encryptedBytes.length);
+
+            Cipher decryptCipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+            decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
+
+            byte[] decryptedBytes = decryptCipher.doFinal(encryptedBytes);
+            decryptedText = new String(decryptedBytes);
+
+        } catch (NoSuchAlgorithmException | BadPaddingException | NoSuchPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException | InvalidKeyException e) {
             e.printStackTrace();
-            return null;
         }
+
+        return decryptedText;
     }
+//    public static String encryptString(SecretKey key, String plainText) {
+//        try {
+//            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+//            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
+//            byte[] plainTextBytes = plainText.getBytes(StandardCharsets.UTF_8);
+//            byte[] cipherText;
+//
+//            cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);
+//            cipherText = new byte[cipher.getOutputSize(plainTextBytes.length)];
+//            int encryptLength = cipher.update(plainTextBytes, 0,
+//                    plainTextBytes.length, cipherText, 0);
+//            encryptLength += cipher.doFinal(cipherText, encryptLength);
+//
+//            return bytesToHex(cipherText);
+//        } catch (NoSuchAlgorithmException | NoSuchProviderException
+//                 | NoSuchPaddingException | InvalidKeyException
+//                 | InvalidAlgorithmParameterException
+//                 | ShortBufferException
+//                 | IllegalBlockSizeException | BadPaddingException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//    }
+//
+//    public static String decryptString(SecretKey key, String cipherText) {
+//        try {
+//            Key decryptionKey = new SecretKeySpec(key.getEncoded(),
+//                    key.getAlgorithm());
+//            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+//            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
+//            byte[] cipherTextBytes = hexToBytes(cipherText);
+//            byte[] plainText;
+//
+//            cipher.init(Cipher.DECRYPT_MODE, decryptionKey, ivSpec);
+//            plainText = new byte[cipher.getOutputSize(cipherTextBytes.length)];
+//            int decryptLength = cipher.update(cipherTextBytes, 0,
+//                    cipherTextBytes.length, plainText, 0);
+//            decryptLength += cipher.doFinal(plainText, decryptLength);
+//
+//            return new String(plainText, "UTF-8");
+//        } catch (NoSuchAlgorithmException | NoSuchProviderException
+//                 | NoSuchPaddingException | InvalidKeyException
+//                 | InvalidAlgorithmParameterException
+//                 | IllegalBlockSizeException | BadPaddingException
+//                 | ShortBufferException | UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//    }
 
     public static String bytesToHex(byte[] data, int length) {
         String digits = "0123456789ABCDEF";
