@@ -207,6 +207,7 @@ public class ChatGroupActivity extends BaseActivity {
     }
 
     private void setListeners(){
+
         binding.imageBack.setOnClickListener(view -> onBackPressed());
         binding.layoutSend.setOnClickListener(view -> sendMessage());
         binding.layoutSendImage.setOnClickListener(v ->{
@@ -219,9 +220,9 @@ public class ChatGroupActivity extends BaseActivity {
             public void onClick(View view) {
                 //
                 //
-                Toast.makeText(getApplicationContext(), idUserCreate, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), idUserCreate, Toast.LENGTH_SHORT).show();
                 if (idUserCreate.equals(preferenceManager.getString(Constants.KEY_USED_ID))) {
-                    String[] items = {"Add member", "Delete member","change group name ", "leave group"};
+                    String[] items = {"Add member", "Delete member","group information", "leave group"};
                     AlertDialog.Builder builder = new AlertDialog.Builder(ChatGroupActivity.this);
                     builder.setTitle("select")
                             .setItems(items, new DialogInterface.OnClickListener() {
@@ -237,34 +238,12 @@ public class ChatGroupActivity extends BaseActivity {
                                         intent.putExtra(Constants.KEY_ROOM, roomChat);
                                         startActivity(intent);
                                     }else if (which == 2) {
-                                        final Dialog dialog1 = new Dialog(ChatGroupActivity.this);
-                                        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                                        dialog1.setContentView(R.layout.dialog_custom);
-                                        dialog1.setCanceledOnTouchOutside(false);
-                                        EditText usernameDialog = (EditText) dialog1.findViewById(R.id.usernameDialog);
-                                        Button cancel = (Button) dialog1.findViewById(R.id.btn_cancel_dialog);
-                                        Button confirmation =  (Button) dialog1.findViewById(R.id.btn_confirmation_dialog);
-                                        confirmation.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View view) {
-                                                String username = usernameDialog.getText().toString();
-                                                database.collection("RoomChat").document(roomChat.getId())
-                                                        .update(
-                                                                "name", username
-                                                        );
-                                                loadReceiverDetails();
+                                        // thong tin
+                                        Intent intent = new Intent(getApplicationContext(), SettingGroupActivity.class);
+                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
+                                        startActivity(intent);
 
-                                                dialog1.dismiss();
 
-                                            }
-                                        });
-                                        cancel.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View view) {
-                                                dialog1.dismiss();
-                                            }
-                                        });
-                                        dialog1.show();
                                     } else if (which == 3) {
                                         // roi khoi nhom
                                         database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
@@ -304,7 +283,7 @@ public class ChatGroupActivity extends BaseActivity {
                 }
                 else{
                     //
-                    String[] items = {"Add member","change group name ", "leave group"};
+                    String[] items = {"Add member","group information", "leave group"};
                     AlertDialog.Builder builder = new AlertDialog.Builder(ChatGroupActivity.this);
                     builder.setTitle("select")
                             .setItems(items, new DialogInterface.OnClickListener() {
@@ -316,34 +295,12 @@ public class ChatGroupActivity extends BaseActivity {
                                         startActivity(intent);
                                     }
                                     else if (which == 1) {
-                                        final Dialog dialog1 = new Dialog(ChatGroupActivity.this);
-                                        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                                        dialog1.setContentView(R.layout.dialog_custom);
-                                        dialog1.setCanceledOnTouchOutside(false);
-                                        EditText usernameDialog = (EditText) dialog1.findViewById(R.id.usernameDialog);
-                                        Button cancel = (Button) dialog1.findViewById(R.id.btn_cancel_dialog);
-                                        Button confirmation =  (Button) dialog1.findViewById(R.id.btn_confirmation_dialog);
-                                        confirmation.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View view) {
-                                                String username = usernameDialog.getText().toString();
-                                                database.collection("RoomChat").document(roomChat.getId())
-                                                        .update(
-                                                                "name", username
-                                                        );
-                                                loadReceiverDetails();
+                                        // thong tin
+                                        Intent intent = new Intent(getApplicationContext(), SettingGroupActivity.class);
+                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
+                                        startActivity(intent);
 
-                                                dialog1.dismiss();
 
-                                            }
-                                        });
-                                        cancel.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View view) {
-                                                dialog1.dismiss();
-                                            }
-                                        });
-                                        dialog1.show();
                                     } else if (which == 2) {
                                         // roi khoi nhom
                                         database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
@@ -479,8 +436,8 @@ public class ChatGroupActivity extends BaseActivity {
 
     @Override
     protected void onResume() {
+        loadReceiverDetails();
         super.onResume();
-
     }
 
     protected void onPostResume() {

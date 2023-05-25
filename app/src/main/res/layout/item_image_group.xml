@@ -9,12 +9,12 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="250dp"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="240dp"
+            android:layout_height="wrap_content"
             app:cardCornerRadius="15dp"
             app:cardElevation="10dp"
             app:cardUseCompatPadding="true"
@@ -32,7 +32,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="15dp"
                     android:gravity="center"
-                    android:text="Name"
                     android:textColor="@color/black"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -60,14 +59,9 @@
                     android:orientation="horizontal"
                     android:weightSum="3">
 
-                    <Button
-                        android:id="@+id/btn_change_pass"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/_10sdp"
-                        android:layout_marginEnd="@dimen/_10sdp"
-                        android:drawableLeft="@drawable/ic_change_pass"
-                        android:text="Change Password" />
+                    <include
+                        android:id="@+id/item_email"
+                        layout="@layout/item_email_group" />
 
                 </LinearLayout>
 
@@ -79,16 +73,18 @@
 
 
     </RelativeLayout>
+
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageProfile"
-        android:src="@drawable/background_image"
-        app:shapeAppearanceOverlay="@style/circular"
-        android:elevation="15dp"
-        android:padding="5dp"
-        android:layout_centerHorizontal="true"
         android:layout_width="98dp"
         android:layout_height="98dp"
-        android:scaleType="centerCrop"/>
+        android:layout_centerHorizontal="true"
+        android:elevation="15dp"
+        android:padding="5dp"
+
+        android:scaleType="centerCrop"
+        android:src="@drawable/chatnhom"
+        app:shapeAppearanceOverlay="@style/circular" />
     <ImageButton
         android:id="@+id/updateProfileImg"
         android:layout_width="@dimen/_20sdp"
