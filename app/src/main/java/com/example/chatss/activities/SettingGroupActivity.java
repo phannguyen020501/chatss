@@ -185,7 +185,7 @@ public class SettingGroupActivity extends BaseActivity implements UserListener {
 
                 })
                 .addOnFailureListener(e -> {
-                    showToast("Update Email fail! Please try again!!!");
+                    showToast("Update name group fail! Please try again!!!");
                 });
     }
     private void onCancelEmailPressed(){
