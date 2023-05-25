@@ -468,7 +468,8 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                         database.collection(Constants.KEY_COLLECTION_CHAT).add(message);
 
                         if (conversionId != null){
-                            updateConversion("*Hình ảnh");
+                            String encryptMess = ECCc.encryptString(secretKey, "*image");
+                            updateConversion(encryptMess);
                         }else {
                             HashMap<String, Object> conversion = new HashMap<>();
                             conversion.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
@@ -482,7 +483,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                             conversion.put(myId, true);
                             conversion.put(receiverUser.id, false);
                             conversion.put(Constants.KEY_RECEIVER_IMAGE, receiverUser.image);
-                            conversion.put(Constants.KEY_LAST_MESSAGE, "*Hình ảnh");
+                            conversion.put(Constants.KEY_LAST_MESSAGE, ECCc.encryptString(secretKey, "*image"));
                             conversion.put(Constants.KEY_TIMESTAMP, new Date());
                             conversion.put(Constants.MESS_RECEIVER_ID, receiverUser.id);
                             conversion.put(Constants.MESS_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));

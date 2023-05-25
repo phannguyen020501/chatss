@@ -237,9 +237,9 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
 
                 Toast.makeText(getApplicationContext(), idUserCreate, Toast.LENGTH_SHORT).show();
                 if (idUserCreate.equals(preferenceManager.getString(Constants.KEY_USED_ID))) {
-                    String[] items = {"Add member", "Delete member","change group name ", "leave group"};
+                    String[] items = {"Add member", "Delete member","Change group name ", "Leave group"};
                     AlertDialog.Builder builder = new AlertDialog.Builder(ChatGroupActivity.this);
-                    builder.setTitle("select")
+                    builder.setTitle("Select")
                             .setItems(items, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     if (which == 0) {
@@ -320,9 +320,9 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
                 }
                 else{
                     //
-                    String[] items = {"Add member","change group name ", "leave group"};
+                    String[] items = {"Add member","Change group name ", "Leave group"};
                     AlertDialog.Builder builder = new AlertDialog.Builder(ChatGroupActivity.this);
-                    builder.setTitle("select")
+                    builder.setTitle("Select")
                             .setItems(items, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     if (which == 0) {

@@ -10,7 +10,8 @@
         android:textColor="@color/primary"
         android:textSize="@dimen/_20ssp"
         android:textStyle="bold"
-        android:layout_marginStart="@dimen/_21sdp"
+        android:layout_marginStart="@dimen/_14sdp"
+        android:layout_marginEnd="@dimen/_14sdp"
         android:paddingTop="@dimen/_12sdp"
         android:paddingBottom="@dimen/_12sdp"/>
     <EditText
