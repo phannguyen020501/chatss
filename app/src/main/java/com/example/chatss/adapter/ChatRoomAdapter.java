@@ -75,6 +75,8 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.UserVi
                                 roomChat.lastMessage = queryDocumentSnapshot.getString("lastMessage");
                                 binding.textName.setText(roomChat.name);
                                 binding.textEmail.setText(roomChat.lastMessage.toString());
+                                if(!queryDocumentSnapshot.getString("image").equals(""));
+                                binding.imageProfile.setImageBitmap(getUserImage(queryDocumentSnapshot.getString("image")));
                             }
                         }
                         else {
