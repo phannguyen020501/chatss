@@ -96,6 +96,11 @@ public class ProfileActivity extends BaseActivity {
         binding.include.btnChangePass.setOnClickListener(v -> {
             startActivity(new Intent(getApplicationContext(), ChangePasswordActivity.class));
         });
+
+        binding.include.genQrCode.setOnClickListener(x -> {
+            startActivity(new Intent(getApplicationContext(), QR_code.class));
+        });
+
         binding.include.updateProfileImg.setOnClickListener(view -> onUpdateProfileImgPressed());
         binding.include.imageProfile.setOnClickListener(view -> {
 

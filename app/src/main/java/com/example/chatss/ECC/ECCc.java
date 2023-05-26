@@ -96,6 +96,53 @@ public class ECCc {
 
     }
 
+    public static void savePrivateKey2(Context context, String email, String password, PrivateKey privateKey, PublicKey publicKey) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
+        // Tạo một khóa bí mật mới
+//        KeyPair keyPair =generateECKeys();
+        System.out.println("keypair");
+        System.out.println(privateKey);
+        System.out.println(publicKey);
+
+
+        // Tạo một certificate tự ký
+        X509Certificate selfSignedCert = generateSelfSignedCertificate2(privateKey, publicKey);
+        System.out.println(selfSignedCert);
+
+
+        // Lưu khóa bí mật và chứng chỉ vào keystore
+        KeyStore keyStore = loadKeyStore(context);
+        KeyStore.PrivateKeyEntry privateKeyEntry = new KeyStore.PrivateKeyEntry(privateKey, new Certificate[]{selfSignedCert});
+        KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(password.toCharArray());
+        keyStore.setEntry(email, privateKeyEntry, passwordProtection);
+
+        FileOutputStream fos = new FileOutputStream(getKeyStoreFile(context));
+
+        //FileOutputStream fos = new FileOutputStream(KEYSTORE_PATH);
+        keyStore.store(fos, KEYSTORE_PASSWORD.toCharArray());
+        fos.close();
+
+    }
+    private static X509Certificate generateSelfSignedCertificate2(PrivateKey privateKey, PublicKey publickey) throws CertificateException {
+        try {
+            X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
+                    new X500Name("CN=Test"),
+                    new BigInteger(64, new SecureRandom()),
+                    new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24),
+                    new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365)),
+                    new X500Name("CN=Test"),
+                    publickey
+            );
+
+            ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WithECDSA")
+                    .build(privateKey);
+
+            return new JcaX509CertificateConverter().getCertificate(certBuilder.build(contentSigner));
+        } catch (Exception e) {
+            throw new CertificateException("Failed to generate self-signed certificate", e);
+        }
+    }
+
+
     public static PrivateKey getPrivateKeyFromKeyStore(Context context, String alias, String keyPassword) {
         try {
             // Load the KeyStore
@@ -205,20 +252,6 @@ public class ECCc {
 
         return decryptedText;
     }
-    public static String bytesToHex(byte[] data, int length) {
-        String digits = "0123456789ABCDEF";
-        StringBuffer buffer = new StringBuffer();
-
-        for (int i = 0; i != length; i++) {
-            int v = data[i] & 0xff;
-
-            buffer.append(digits.charAt(v >> 4));
-            buffer.append(digits.charAt(v & 0xf));
-        }
-
-        return buffer.toString();
-    }
-
 
     public static String publicKeyToString(PublicKey publicKey) throws IOException {
 

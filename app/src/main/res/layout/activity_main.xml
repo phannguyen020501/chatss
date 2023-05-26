@@ -81,6 +81,45 @@
             android:layout_gravity="center" />
     </FrameLayout>
 
+    <LinearLayout
+        android:id="@+id/view_noPrivateKey"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/imageProfile"
+        android:layout_marginTop="@dimen/_66sdp">
+
+        <TextView
+            android:id="@+id/textContent"
+            android:layout_width="@dimen/_240sdp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_margin="10dp"
+            android:textColor="@color/primary"
+            android:textSize="@dimen/_20sdp"
+            android:text="You are logged in on a new device"/>
+
+        <TextView
+            android:id="@+id/textFormat"
+            android:text="Go to the device that has been logged in and scan the QR to receive the key"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_margin="10dp"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/scanBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:backgroundTint="#0F9D58"
+            android:layout_gravity="center"
+            android:text="Scan"/>
+
+    </LinearLayout>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabNewChat"
         android:layout_width="wrap_content"
