@@ -196,10 +196,10 @@ public class UsersActivity extends BaseActivity implements UserListener {
     private void searchUsers(String s){
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         Task<QuerySnapshot> x = database.collection(Constants.KEY_COLLECTION_USERS)
-                .orderBy("name").startAt(s).endAt(s+"\uf8ff").get();
+                .orderBy("name").startAt( s).endAt(s+"\uf8ff").get();
         Task<QuerySnapshot> y = database.collection(Constants.KEY_COLLECTION_USERS)
-                .orderBy("email").startAt(s).endAt(s+"\uf8ff").get();
-
+                .orderBy("email").startAt( s).endAt(s+"\uf8ff").get();
+        List<String> listEmail = new ArrayList<>();
         Tasks.whenAllSuccess(x, y).addOnSuccessListener(task ->{
             loading(false);
             String currentUserId = preferenceManager.getString(Constants.KEY_USED_ID);
@@ -215,28 +215,24 @@ public class UsersActivity extends BaseActivity implements UserListener {
                     user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                     user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                     user.id = queryDocumentSnapshot.getId();
-                    user.publicKey = queryDocumentSnapshot.getString(Constants.KEY_PUBLIC_KEY);
-                    if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
-                        user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
-                    }
                     users.add(user);
+                    listEmail.add(user.email);
                 }
 
                 for(QueryDocumentSnapshot queryDocumentSnapshot : y.getResult()){
                     if(currentUserId.equals(queryDocumentSnapshot.getId())){
                         continue;
                     }
-                    User user = new User();
-                    user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
-                    user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
-                    user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
-                    user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
-                    user.id = queryDocumentSnapshot.getId();
-                    user.publicKey = queryDocumentSnapshot.getString(Constants.KEY_PUBLIC_KEY);
-                    if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
-                        user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                    if(!listEmail.contains(queryDocumentSnapshot.getString(Constants.KEY_EMAIL))){
+                        User user = new User();
+                        user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                        user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
+                        user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
+                        user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
+                        user.id = queryDocumentSnapshot.getId();
+                        users.add(user);
                     }
-                    users.add(user);
+
                 }
 
                 if(users.size() > 0){
@@ -251,9 +247,6 @@ public class UsersActivity extends BaseActivity implements UserListener {
             }
         });
 
-
-
-//        y.get()
 //                .addOnCompleteListener(task -> {
 //                    loading(false);
 //                    String currentUserId = preferenceManager.getString(Constants.KEY_USED_ID);
