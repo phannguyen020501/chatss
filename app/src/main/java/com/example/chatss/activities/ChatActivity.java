@@ -103,7 +103,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
     private FirebaseFirestore database;
     private String conversionId = null;
 
-    private Boolean isReceiverAvailable = false;
+    private Boolean isReceiverAvailable = false, isOnChat = false;
 
     private String encodedImage, imgUrl, myId;
 
@@ -230,7 +230,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
             conversion.put(Constants.MESS_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
             addConversion(conversion);
         }
-        if (!isReceiverAvailable){
+        if (!isOnChat){
             try {
                 JSONArray tokens = new JSONArray();
                 tokens.put(receiverUser.token);
@@ -241,6 +241,7 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
                 data.put(Constants.KEY_FCM_TOKEN, preferenceManager.getString(Constants.KEY_FCM_TOKEN));
                 data.put(Constants.KEY_MESSAGE, encryptMess);
                 data.put(Constants.KEY_PUBLIC_KEY, preferenceManager.getString(Constants.KEY_PUBLIC_KEY));
+                data.put("Type", "Indivisual");
 
                 JSONObject body = new JSONObject();
                 body.put(Constants.REMOTE_MSG_DATA,data);
@@ -503,7 +504,19 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
     private void addConversion(HashMap<String , Object> converion){
         database.collection(Constants.KEY_COLLECTION_CONVERSATIONS)
                 .add(converion)
-                .addOnSuccessListener(documentReference -> conversionId = documentReference.getId());
+                .addOnSuccessListener(documentReference -> {
+                    conversionId = documentReference.getId();
+                    database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).document(
+                            conversionId
+                    ).addSnapshotListener(ChatActivity.this, (value, error) -> {
+                        if (error != null){
+                            return;
+                        }
+                        if (value != null){
+                            isOnChat = value.getBoolean(receiverUser.id);
+                        }
+                    });
+                });
     }
 
     private void updateConversion(String message){
@@ -588,6 +601,16 @@ public class ChatActivity extends BaseActivity implements DownloadImageListener{
         if (task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0){
             DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
             conversionId = documentSnapshot.getId();
+            database.collection(Constants.KEY_COLLECTION_CONVERSATIONS).document(
+                    conversionId
+            ).addSnapshotListener(ChatActivity.this, (value, error) -> {
+                if (error != null){
+                    return;
+                }
+                if (value != null){
+                    isOnChat = value.getBoolean(receiverUser.id);
+                }
+            });
         }
     };
     @Override

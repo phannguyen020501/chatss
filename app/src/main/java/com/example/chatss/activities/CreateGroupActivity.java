@@ -2,7 +2,9 @@ package com.example.chatss.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.SearchView;
@@ -14,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.chatss.adapter.UsersGroupAdapter;
 import com.example.chatss.databinding.ActivityCreateGroupBinding;
 import com.example.chatss.listeners.UserListener;
+import com.example.chatss.models.RoomChat;
 import com.example.chatss.models.User;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
@@ -32,6 +35,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class CreateGroupActivity extends AppCompatActivity implements UserListener {
     private ActivityCreateGroupBinding binding;
@@ -85,6 +89,21 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                 Log.d("a", "Count failed: ", task.getException());
             }
         });
+        binding.edtCreateGroup.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                binding.btnCreateGroup.setEnabled(charSequence.length() > 0 && checkCheckBoxisCheck());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
     }
 
     private void createGroup() {
@@ -100,6 +119,10 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     roomChat.put("name", binding.edtCreateGroup.getText().toString());
                     roomChat.put("lastMessage", "");
                     roomChat.put("idUserCreate", preferenceManager.getString(Constants.KEY_USED_ID));
+                    RoomChat roomChat1 = new RoomChat();
+                    roomChat1.id =  String.valueOf(cntRoomChat);
+                    roomChat1.name = binding.edtCreateGroup.getText().toString();
+                    roomChat1.lastMessage = "";
                     binding.edtCreateGroup.getText().clear();
                     // tao phong chat
                     database.collection("RoomChat").document(String.valueOf(cntRoomChat))
@@ -108,66 +131,37 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                                 for(int i=0;i<Constants.userGroups.size();i++){
                                     if(Constants.userGroups.get(i).checked.equals("1")){
                                         // them roomChat cho cac user duoc moi tham gia
+                                        int finalI = i;
                                         database.collection("ListRoomUser").document(Constants.userGroups.get(i).id).collection("ListRoom").document(String.valueOf(cntRoomChat))
                                                 .set(roomChat)
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        // nguoi trong nhom
+                                                .addOnSuccessListener(aVoid -> {
+                                                    // nguoi trong nhom
+                                                    database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userGroups.get(finalI).id)
+                                                            .set(Constants.userGroups.get(finalI))
+                                                            .addOnSuccessListener(aVoid1 -> database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(String.valueOf(cntRoomChat))
+                                                                    .set(roomChat)
+                                                                    .addOnSuccessListener(aVoid11 -> database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userCurrent.getId())
+                                                                            .set(Constants.userCurrent)
+                                                                            .addOnSuccessListener(aVoid111 -> {
+                                                                                Intent intent = new Intent(getApplicationContext(), ChatGroupActivity.class);
+                                                                                intent.putExtra(Constants.KEY_ROOM, roomChat1);
+                                                                                startActivity(intent);
+                                                                                finish();
+                                                                            })
+                                                                            .addOnFailureListener(e -> {
 
-                                                    }
+                                                                            }))
+                                                                    .addOnFailureListener(e -> {
+
+                                                                    }))
+                                                            .addOnFailureListener(e -> {
+
+                                                            });
                                                 })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-
-                                                    }
-                                                });
-                                        database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userGroups.get(i).id)
-                                                .set(Constants.userGroups.get(i))
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-
-                                                    }
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-
-                                                    }
+                                                .addOnFailureListener(e -> {
                                                 });
                                     }
                                 }
-                                database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(String.valueOf(cntRoomChat))
-                                        .set(roomChat)
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-                                                onBackPressed();
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-
-                                            }
-                                        });
-
-                                database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userCurrent.getId())
-                                        .set(Constants.userCurrent)
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-
-                                            }
-                                        });
                                 loading(false);
                             })
                             .addOnFailureListener(exception -> {
@@ -177,6 +171,14 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                 }
             }
         });
+    }
+    private Boolean checkCheckBoxisCheck(){
+        for(int i=0;i<Constants.userGroups.size();i++) {
+            if (Constants.userGroups.get(i).checked.equals("1")) {
+                return true;
+            }
+        }
+        return false;
     }
     private void showToast (String message){
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();;
@@ -205,6 +207,9 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                             user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                             user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                             user.id = queryDocumentSnapshot.getId();
+                            if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                                user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                            }
                             users.add(user);
                         }
                         if(users.size() > 0){
@@ -254,6 +259,9 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                     user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                     user.id = queryDocumentSnapshot.getId();
+                    if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                        user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                    }
                     users.add(user);
                 }
 
@@ -267,6 +275,9 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                     user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                     user.id = queryDocumentSnapshot.getId();
+                    if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                        user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                    }
                     users.add(user);
                 }
 
@@ -291,9 +302,6 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
 
     @Override
     public void onUserClicked(User user) {
-        Intent intent = new Intent(getApplicationContext(), ChatGroupActivity.class);
-        intent.putExtra(Constants.KEY_USER, user);
-        startActivity(intent);
-        finish();
+
     }
 }

@@ -99,6 +99,7 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
                             roomChat.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
                             roomChat.id = queryDocumentSnapshot.getString("id");
                             roomChat.lastMessage = queryDocumentSnapshot.getString("lastMessage");
+                            roomChat.dateObject = queryDocumentSnapshot.getDate(Constants.KEY_TIMESTAMP);
                             //Toast.makeText(getApplicationContext(),roomChat.lastMessage, Toast.LENGTH_SHORT).show();
                             roomChats.add(roomChat);
                         }
