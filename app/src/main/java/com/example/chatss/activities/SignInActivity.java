@@ -70,13 +70,13 @@ public class SignInActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
 
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         preferenceManager = new PreferenceManager(getApplicationContext());
         if(preferenceManager.getBoolean(Constants.KEY_IS_SIGNED_IN)){
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            Intent intent = new Intent(getApplicationContext(), MainActivity2.class);
             startActivity(intent);
             finish();
         }
@@ -87,8 +87,8 @@ public class SignInActivity extends AppCompatActivity {
         setListeners();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private void setListeners() {
+
+    private void setListeners(){
         binding.textCreateNewAccount.setOnClickListener(v ->
                 startActivity(new Intent(getApplicationContext(), SignUpActivity.class))
         );
@@ -99,6 +99,7 @@ public class SignInActivity extends AppCompatActivity {
 
         });
     }
+
     private void showToast (String message){
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();;
     }
@@ -159,54 +160,65 @@ public class SignInActivity extends AppCompatActivity {
     private void signIn() {
         loading(true);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
-        firebaseAuth.signInWithEmailAndPassword(binding.inputEmail.getText().toString(), binding.inputPassword.getText().toString())
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task1) {
-                        database.collection(Constants.KEY_COLLECTION_USERS)
-                                .whereEqualTo(Constants.KEY_EMAIL, binding.inputEmail.getText().toString())
-                                .get()
-                                .addOnCompleteListener(task -> {
-                                    if(task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0 ){
-                                        DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
-                                        preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
-                                        preferenceManager.putString(Constants.KEY_USED_ID, documentSnapshot.getId());
-                                        preferenceManager.putString(Constants.KEY_NAME, documentSnapshot.getString(Constants.KEY_NAME));
-                                        preferenceManager.putString(Constants.KEY_IMAGE, documentSnapshot.getString(Constants.KEY_IMAGE));
-                                        preferenceManager.putString(Constants.KEY_EMAIL, documentSnapshot.getString(Constants.KEY_EMAIL));
-                                        preferenceManager.putString(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
-                                        preferenceManager.putString(Constants.KEY_PUBLIC_KEY, documentSnapshot.getString(Constants.KEY_PUBLIC_KEY));
+        database.collection(Constants.KEY_COLLECTION_USERS)
+                .whereEqualTo(Constants.KEY_EMAIL, binding.inputEmail.getText().toString())
+                .whereEqualTo(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful() && task.getResult() != null && task.getResult().getDocuments().size() > 0 ){
+                        DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
+                        preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
+                        preferenceManager.putString(Constants.KEY_USED_ID, documentSnapshot.getId());
+                        preferenceManager.putString(Constants.KEY_NAME, documentSnapshot.getString(Constants.KEY_NAME));
+                        preferenceManager.putString(Constants.KEY_IMAGE, documentSnapshot.getString(Constants.KEY_IMAGE));
+                        preferenceManager.putString(Constants.KEY_EMAIL, documentSnapshot.getString(Constants.KEY_EMAIL));
+                        preferenceManager.putString(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
+                        preferenceManager.putString(Constants.KEY_PUBLIC_KEY, documentSnapshot.getString(Constants.KEY_PUBLIC_KEY));
 
-                                        if (documentSnapshot.getString(Constants.KEY_PHONE) != null){
-                                            preferenceManager.putString(Constants.KEY_PHONE, documentSnapshot.getString(Constants.KEY_PHONE));
-                                        }
-                                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_CITY) != null){
-                                            preferenceManager.putString(Constants.KEY_ADDRESS_CITY, documentSnapshot.getString(Constants.KEY_ADDRESS_CITY));
-                                        }
-                                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_PROVINCE) != null){
-                                            preferenceManager.putString(Constants.KEY_ADDRESS_PROVINCE, documentSnapshot.getString(Constants.KEY_ADDRESS_PROVINCE));
-                                        }
-                                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_TOWN) != null){
-                                            preferenceManager.putString(Constants.KEY_ADDRESS_TOWN, documentSnapshot.getString(Constants.KEY_ADDRESS_TOWN));
-                                        }
-                                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_STREET) != null){
-                                            preferenceManager.putString(Constants.KEY_ADDRESS_STREET, documentSnapshot.getString(Constants.KEY_ADDRESS_STREET));
-                                        }
-                                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_NUMBER) != null){
-                                            preferenceManager.putString(Constants.KEY_ADDRESS_NUMBER, documentSnapshot.getString(Constants.KEY_ADDRESS_NUMBER));
-                                        }
-                                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        startActivity(intent);
-                                    } else {
-                                        loading(false);
-                                        showToast("Unable to sign in");
-                                    }
-                                });
+                        //Lấy private Key từ KeyStore
+                        PrivateKey priKey = ECCc.getPrivateKeyFromKeyStore(
+                                getApplicationContext(),
+                                binding.inputEmail.getText().toString(),
+                                binding.inputPassword.getText().toString()
+                        );
+                        //Lưu privateKey vào Preference cho dễ gọi lại, tăng hiệu năng máy
+                        if (priKey != null){
+                            try {
+                                String priKeyStr = ECCc.privateKeyToString(priKey);
+                                preferenceManager.putString(Constants.KEY_PRIVATE_KEY,priKeyStr);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                showToast("Cannot parse PrivateKey to String");
+                            }
+                        }
+
+
+                        if (documentSnapshot.getString(Constants.KEY_PHONE) != null){
+                            preferenceManager.putString(Constants.KEY_PHONE, documentSnapshot.getString(Constants.KEY_PHONE));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_CITY) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_CITY, documentSnapshot.getString(Constants.KEY_ADDRESS_CITY));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_PROVINCE) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_PROVINCE, documentSnapshot.getString(Constants.KEY_ADDRESS_PROVINCE));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_TOWN) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_TOWN, documentSnapshot.getString(Constants.KEY_ADDRESS_TOWN));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_STREET) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_STREET, documentSnapshot.getString(Constants.KEY_ADDRESS_STREET));
+                        }
+                        if (documentSnapshot.getString(Constants.KEY_ADDRESS_NUMBER) != null){
+                            preferenceManager.putString(Constants.KEY_ADDRESS_NUMBER, documentSnapshot.getString(Constants.KEY_ADDRESS_NUMBER));
+                        }
+                        Intent intent = new Intent(getApplicationContext(), MainActivity2.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                    } else {
+                        loading(false);
+                        showToast("Unable to sign in");
                     }
                 });
-
-
     }
 
     private void loading(boolean isLoading) {

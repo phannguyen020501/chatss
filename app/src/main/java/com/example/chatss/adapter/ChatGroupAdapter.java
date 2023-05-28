@@ -7,7 +7,6 @@ import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -124,6 +123,11 @@ public class ChatGroupAdapter extends  RecyclerView.Adapter<RecyclerView.ViewHol
 
 
         void setData(ChatMessage chatMessage){
+            if (chatMessage.conversionName != null ){
+                binding.textName.setText(chatMessage.conversionName);
+            }
+            binding.textName.setVisibility(View.VISIBLE);
+
             if(chatMessage.imageSender!=null){
                 binding.imageProfile.setImageBitmap(getBitmapFromEncodedString(chatMessage.imageSender));
             }

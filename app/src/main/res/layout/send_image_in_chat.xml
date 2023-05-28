@@ -29,7 +29,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="Upload"
-            android:background="@color/primary"
             android:id="@+id/preview_upload_img_btn"
             android:layout_margin="2dp"
             android:layout_weight="1"/>

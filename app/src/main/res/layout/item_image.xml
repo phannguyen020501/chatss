@@ -9,12 +9,12 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_210sdp"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_192sdp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_28sdp"
             app:cardCornerRadius="@dimen/_10sdp"
             app:cardElevation="@dimen/_7sdp"
@@ -32,7 +32,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:layout_marginTop="@dimen/_20sdp"
-                    android:layout_marginBottom="@dimen/_1sdp">
+                    android:layout_marginBottom="@dimen/_10sdp">
 
                     <TextView
                         android:id="@+id/text_name"
@@ -71,25 +71,35 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    >
 
                     <Button
                         android:id="@+id/btn_change_pass"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/_10sdp"
-                        android:layout_marginEnd="@dimen/_10sdp"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_50sdp"
+                        android:layout_marginStart="@dimen/_30sdp"
+                        android:layout_marginEnd="@dimen/_30sdp"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:textSize="@dimen/_13ssp"
+                        android:textStyle="bold"
+                        app:cornerRadius="@dimen/_8sdp"
                         android:drawableLeft="@drawable/ic_change_pass"
                         android:text="Change Password" />
 
                     <Button
                         android:id="@+id/gen_qr_code"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/_10sdp"
-                        android:layout_marginEnd="@dimen/_10sdp"
-                        android:drawableLeft="@drawable/ic_change_pass"
-                        android:text="Generate QR code" />
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_50sdp"
+                        android:layout_marginBottom="@dimen/_5sdp"
+                        android:layout_marginStart="@dimen/_30sdp"
+                        android:layout_marginEnd="@dimen/_30sdp"
+                        android:drawableLeft="@drawable/ic_devices_other"
+                        android:textSize="@dimen/_13ssp"
+                        android:textStyle="bold"
+                        app:cornerRadius="@dimen/_8sdp"
+                        android:text="Add new device"
+                        android:backgroundTint="@color/orange"/>
 
                 </LinearLayout>
 

@@ -98,7 +98,7 @@ public class ProfileActivity extends BaseActivity {
         });
 
         binding.include.genQrCode.setOnClickListener(x -> {
-            startActivity(new Intent(getApplicationContext(), QR_code.class));
+            onAddDevicePressed();
         });
 
         binding.include.updateProfileImg.setOnClickListener(view -> onUpdateProfileImgPressed());
@@ -116,6 +116,53 @@ public class ProfileActivity extends BaseActivity {
         binding.itemAdd.btnCancel.setOnClickListener(view -> onCancelAdressPressed());
         binding.itemAdd.icHide.setOnClickListener(view -> onHideAdressPressed());
     }
+    private void onAddDevicePressed() {
+        // Sử dụng LayoutInflater để tạo ra view từ tệp tin layout tùy chỉnh
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_warning, null);
+
+        // Lấy tham chiếu đến các phần tử trong layout tùy chỉnh
+        EditText editTextName = dialogView.findViewById(R.id.edit_text_name);
+        Button buttonOK = dialogView.findViewById(R.id.btn_OK);
+        Button buttonEnd = dialogView.findViewById(R.id.btn_Cancel);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+        builder.setView(dialogView);
+
+        final AlertDialog alertDialog = builder.create();
+
+        // Ngăn người dùng đóng Alert Dialog bằng cách bấm ra bên ngoài
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        // Ngăn người dùng đóng Alert Dialog bằng cách bấm nút Back
+        alertDialog.setCancelable(false);
+        buttonEnd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.cancel();
+            }
+        });
+        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                buttonOK.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String pass = editTextName.getText().toString().trim();
+                        if (!pass.isEmpty() && pass.equals(preferenceManager.getString(Constants.KEY_PASSWORD))) {
+                            startActivity(new Intent(getApplicationContext(), QR_code.class));
+                            alertDialog.dismiss();
+                        } else {
+                            Toast.makeText(ProfileActivity.this, "Wrong Password", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
+        alertDialog.show();
+    }
+
+
 
     private void onEditNamePressed() {
         // Sử dụng LayoutInflater để tạo ra view từ tệp tin layout tùy chỉnh

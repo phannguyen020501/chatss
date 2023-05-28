@@ -11,7 +11,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,8 +35,11 @@ import com.example.chatss.databinding.ActivityChatGroupBinding;
 import com.example.chatss.listeners.DownloadImageListener;
 import com.example.chatss.models.ChatMessage;
 import com.example.chatss.models.RoomChat;
+import com.example.chatss.network.ApiClient;
+import com.example.chatss.network.ApiService;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -46,6 +48,7 @@ import com.google.firebase.firestore.AggregateQuerySnapshot;
 import com.google.firebase.firestore.AggregateSource;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -54,12 +57,11 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,7 +69,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicReference;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ChatGroupActivity extends BaseActivity implements DownloadImageListener {
     private String idUserCreate = new String();
@@ -79,7 +84,7 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
     private PreferenceManager preferenceManager;
     private FirebaseFirestore database;
     private int cntMessage=0;
-
+    private JSONArray tokens ;
     private Uri imgUri;
 
     private static final int REQUEST_PERMISSION_CODE = 10;
@@ -95,6 +100,7 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
         super.onCreate(savedInstanceState);
         binding = ActivityChatGroupBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        tokens = new JSONArray();
         loadReceiverDetails();
         initData();
         setListeners();
@@ -131,6 +137,7 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
     private void sendMessage(){
         HashMap<String , Object> message = new HashMap<>();
         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
+        message.put(Constants.KEY_SENDER_NAME, preferenceManager.getString(Constants.KEY_NAME));
         message.put("roomId", roomChat.id);
         message.put(Constants.KEY_MESSAGE, binding.inputMessage.getText().toString());
         message.put(Constants.KEY_TIMESTAMP, new Date());
@@ -153,9 +160,117 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
                 });
         database.collection("RoomChat").document(roomChat.getId())
                 .update(
-                        "lastMessage", binding.inputMessage.getText().toString()
+                        "senderName", preferenceManager.getString(Constants.KEY_NAME),
+                        "lastMessage", binding.inputMessage.getText().toString(),
+                        Constants.KEY_TIMESTAMP, new Date()
                 );
+        database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
+                        .update(
+                                "senderName", preferenceManager.getString(Constants.KEY_NAME),
+                                "lastMessage", binding.inputMessage.getText().toString(),
+                                Constants.KEY_TIMESTAMP, new Date()
+                        );
+        //sendnotification
+        getTokenbeforeSendNoti( binding.inputMessage.getText().toString());
+
         binding.inputMessage.setText(null);
+    }
+    private void getTokenbeforeSendNoti(String mess){
+        database.collection("Participants").document(roomChat.id).collection("Users").get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot querySnapshot = task.getResult();
+                        if (querySnapshot != null) {
+                            List<String> usersID = new ArrayList<>();
+                            for (QueryDocumentSnapshot document : querySnapshot) {
+                                String userId = document.getId();
+                                // Sử dụng documentId ở đây (ví dụ: in ra, thêm vào danh sách, v.v.)
+                                usersID.add(userId);
+                                if (preferenceManager.getString(Constants.KEY_USED_ID).equals(userId)){
+                                    continue;
+                                }
+                                database.collection(Constants.KEY_COLLECTION_USERS).document(userId).get().addOnCompleteListener(task1 ->{
+                                    if (task.isSuccessful()) {
+                                        DocumentSnapshot user = task1.getResult();
+                                        if (user.exists()) {
+                                            if (user.getString(Constants.KEY_FCM_TOKEN) != null){
+                                                String token = user.getString(Constants.KEY_FCM_TOKEN);
+                                                // Sử dụng fieldValue ở đây (ví dụ: in ra, gán giá trị cho một biến, v.v.)
+                                                tokens.put(token);
+                                                try {
+                                                    JSONArray tokens = new JSONArray();
+                                                    tokens.put(token);
+
+                                                    JSONObject data = new JSONObject();
+
+                                                    data.put("id", roomChat.id);
+                                                    data.put(Constants.KEY_NAME, roomChat.name);
+                                                    data.put(Constants.KEY_MESSAGE, preferenceManager.getString(Constants.KEY_NAME)+ ": " + mess);
+                                                    data.put("Type", "Group");
+
+                                                    JSONObject body = new JSONObject();
+                                                    body.put(Constants.REMOTE_MSG_DATA,data);
+                                                    body.put(Constants.REMOTE_MSG_REGISTRATION_IDS,tokens);
+
+                                                    sendNotification(body.toString());
+                                                }catch (Exception e){
+                                                    showToast(e.getMessage());
+                                                }
+                                            }
+                                        } else {
+                                            Log.d("Firestore", "Document not found");
+                                        }
+                                    } else {
+                                        Log.d("Firestore", "Error getting user: " + task.getException());
+                                    }
+                                });
+                            }
+
+
+                        }
+                    } else {
+                        Log.d("Firestore", "Error getting list users: " + task.getException());
+                    }
+                });
+    }
+    private void sendNotification(String messageBody){
+        ApiClient.getClient().create(ApiService.class).sendMessage(
+                Constants.getRemoteMsgHeaders(),
+                messageBody
+        ).enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+                if(response.isSuccessful()){
+                    try{
+                        if(response.body() != null){
+                            JSONObject responseJson = new JSONObject(response.body());
+                            JSONArray results = responseJson.getJSONArray("results");
+                            if(responseJson.getInt("failure") == 1){
+                                JSONObject error = (JSONObject) results.get(0);
+                                showToast(error.getString("error"));
+                                return;
+                            }
+                        }
+                    }catch (JSONException e){
+                        e.printStackTrace();
+                    }
+                    showToast("Notification sent successfully");
+                }else {
+                    showToast("Error" + response.code());
+                    Log.d("demo", ""+ response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull  Call<String> call, @NonNull Throwable t) {
+
+                showToast(t.getMessage());
+            }
+        });
+
+    }
+    private  void showToast(String message){
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     private  void showToash(String message){
@@ -178,6 +293,7 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
                 if (documentChange.getType() == DocumentChange.Type.ADDED){
                     ChatMessage chatMessage = new ChatMessage();
                     chatMessage.senderId = documentChange.getDocument().getString(Constants.KEY_SENDER_ID);
+                    chatMessage.conversionName = documentChange.getDocument().getString(Constants.KEY_SENDER_NAME);
                     chatMessage.receiverId = documentChange.getDocument().getString(Constants.KEY_RECEIVER_ID);
                     chatMessage.type = documentChange.getDocument().getString(Constants.TYPE_MESSAGES_SEND);
                     chatMessage.message = documentChange.getDocument().getString(Constants.KEY_MESSAGE);
@@ -226,7 +342,13 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
     private void setListeners(){
 
         binding.imageBack.setOnClickListener(view -> onBackPressed());
-        binding.layoutSend.setOnClickListener(view -> sendMessage());
+        binding.layoutSend.setOnClickListener(view -> {
+            if(!binding.inputMessage.getText().toString().trim().isEmpty()){
+                sendMessage();
+            }else{
+                showToash("Type message first!!");
+            }
+        });
         binding.layoutSendImage.setOnClickListener(v ->{
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -411,6 +533,7 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
 
                         HashMap<String, Object> message = new HashMap<>();
                         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USED_ID));
+                        message.put(Constants.KEY_SENDER_NAME, preferenceManager.getString(Constants.KEY_NAME));
                         message.put(Constants.KEY_RECEIVER_ID, roomChat.id);
                         message.put(Constants.KEY_MESSAGE, imgUrl);
                         message.put(Constants.KEY_TIMESTAMP, new Date());
@@ -433,7 +556,15 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
                                 });
                         database.collection("RoomChat").document(roomChat.getId())
                                 .update(
-                                        "lastMessage", "*Image"
+                                        "lastMessage", "*Image",
+                                        Constants.KEY_TIMESTAMP, new Date(),
+                                        "senderName", preferenceManager.getString(Constants.KEY_NAME)
+                                );
+                        database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
+                                .update(
+                                        "senderName", preferenceManager.getString(Constants.KEY_NAME),
+                                        "lastMessage", "*Image",
+                                        Constants.KEY_TIMESTAMP, new Date()
                                 );
                     }
                 });

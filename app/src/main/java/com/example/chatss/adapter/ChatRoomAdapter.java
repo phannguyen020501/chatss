@@ -63,26 +63,26 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.UserVi
         }
 
         void  setUserData(RoomChat roomChat){
-            FirebaseFirestore database = FirebaseFirestore.getInstance();
-            database.collection("RoomChat")
-                    .whereEqualTo("id", roomChat.id)
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if(task.isSuccessful() && task.getResult() != null){
-                            for(QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
-                                roomChat.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
-                                roomChat.id = queryDocumentSnapshot.getString("id");
-                                roomChat.lastMessage = queryDocumentSnapshot.getString("lastMessage");
-                                binding.textName.setText(roomChat.name);
-                                binding.textEmail.setText(roomChat.lastMessage.toString());
-                                if(!queryDocumentSnapshot.getString("image").equals(""));
-                                binding.imageProfile.setImageBitmap(getUserImage(queryDocumentSnapshot.getString("image")));
-                            }
-                        }
-                        else {
-
-                        }
-                    });
+//            FirebaseFirestore database = FirebaseFirestore.getInstance();
+//            database.collection("RoomChat")
+//                    .whereEqualTo("id", roomChat.id)
+//                    .get()
+//                    .addOnCompleteListener(task -> {
+//                        if(task.isSuccessful() && task.getResult() != null){
+//                            for(QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
+//                                roomChat.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+//                                roomChat.id = queryDocumentSnapshot.getString("id");
+//                                roomChat.lastMessage = queryDocumentSnapshot.getString("lastMessage");
+//                                binding.textName.setText(roomChat.name);
+//                                binding.textEmail.setText(roomChat.lastMessage);
+//                            }
+//                        }
+//                        else {
+//
+//                        }
+//                    });
+            binding.textName.setText(roomChat.name);
+            binding.textEmail.setText(roomChat.senderName +": " + roomChat.lastMessage);
             binding.getRoot().setOnClickListener(v -> roomChatListener.onRoomChatClicked(roomChat));
         }
     }

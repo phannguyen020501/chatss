@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.widget.ImageView;
 import android.widget.Toast;
 import com.example.chatss.databinding.ActivityQrCodeBinding;
@@ -13,14 +14,14 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class QR_code extends AppCompatActivity {
 
     private ActivityQrCodeBinding binding;
-    public final static int WHITE = 0xFFFFFFFF;
-    public final static int BLACK = 0xFF000000;
-    public final static int WIDTH = 400;
-    public final static int HEIGHT = 400;
     public static String STR ;
 
     private PreferenceManager preferenceManager;
@@ -32,42 +33,49 @@ public class QR_code extends AppCompatActivity {
         setContentView(binding.getRoot());
         ImageView imageView = binding.myImage;
         preferenceManager = new PreferenceManager((getApplicationContext()));
-        STR = preferenceManager.getString(Constants.KEY_PRIVATE_KEY);
-        if(STR == null){
-            Toast.makeText(this, "PrivateKey does not exist!", Toast.LENGTH_SHORT).show();
-            return;
-        } else
-        {
-            try {
-                Bitmap bitmap = encodeAsBitmap(STR);
-                imageView.setImageBitmap(bitmap);
-            } catch (WriterException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    Bitmap encodeAsBitmap(String str) throws WriterException {
-        BitMatrix result;
+
+        // Tạo dữ liệu key-value
+        JSONObject dataObject = new JSONObject();
         try {
-            result = new MultiFormatWriter().encode(str,
-                    BarcodeFormat.QR_CODE, WIDTH, HEIGHT, null);
-        } catch (IllegalArgumentException iae) {
-            // Unsupported format
-            return null;
+            dataObject.put("email", preferenceManager.getString(Constants.KEY_EMAIL));
+            dataObject.put("privateKey", preferenceManager.getString(Constants.KEY_PRIVATE_KEY));
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Fail when put data to JSON object", Toast.LENGTH_SHORT).show();
         }
 
-        int w = result.getWidth();
-        int h = result.getHeight();
-        int[] pixels = new int[w * h];
-        for (int y = 0; y < h; y++) {
-            int offset = y * w;
-            for (int x = 0; x < w; x++) {
-                pixels[offset + x] = result.get(x, y) ? BLACK : WHITE;
-            }
-        }
+        // Chuyển đổi dữ liệu thành định dạng JSON
+        STR = dataObject.toString();
 
-        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        bitmap.setPixels(pixels, 0, w, 0, 0, w, h);
+        try {
+            // Tính toán kích thước ảnh QR dựa trên kích thước màn hình
+            int qrCodeSize = getQRCodeSize();
+            //Tạo qr
+            Bitmap bitmap = encodeAsBitmap(STR, qrCodeSize);
+            // Hiển thị lên imv
+            imageView.setImageBitmap(bitmap);
+        } catch (WriterException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Fail when gen QR", Toast.LENGTH_SHORT).show();
+        }
+        binding.okBtn.setOnClickListener(v ->{
+            onBackPressed();
+        });
+    }
+
+
+    private int getQRCodeSize() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenWidth = displayMetrics.widthPixels;
+        int screenHeight = displayMetrics.heightPixels;
+        int smallerDimension = Math.min(screenWidth, screenHeight);
+        return (int) (smallerDimension * 0.8); // Sử dụng tỷ lệ 80% của kích thước màn hình
+    }
+    Bitmap encodeAsBitmap(String str, int qrCodeSize) throws WriterException {
+        BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+        Bitmap bitmap = barcodeEncoder.encodeBitmap(str, BarcodeFormat.QR_CODE, qrCodeSize, qrCodeSize);
         return bitmap;
     }
 }

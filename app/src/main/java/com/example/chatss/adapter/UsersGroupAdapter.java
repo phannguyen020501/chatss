@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.Toast;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chatss.R;
 import com.example.chatss.databinding.ItemContainerUserGroupBinding;
 import com.example.chatss.listeners.UserListener;
 import com.example.chatss.models.User;
@@ -66,14 +68,30 @@ public class UsersGroupAdapter extends RecyclerView.Adapter<UsersGroupAdapter.Us
             binding.textName.setText(user.name);
             binding.textEmail.setText(user.email);
             binding.imageProfile.setImageBitmap(getUserImage(user.image));
-            binding.getRoot().setOnClickListener(v -> userListener.onUserClicked(user));
+            binding.getRoot().setOnClickListener(v -> {
+                binding.checkboxMeat.setChecked(!binding.checkboxMeat.isChecked());
+            });
+            if (user.availability != null){
+                if (user.availability == 1) binding.imageStatus.setBackgroundResource(R.drawable.background_online);
+                else binding.imageStatus.setBackgroundResource(R.drawable.background_offline);
+            }else {
+                binding.imageStatus.setVisibility(View.GONE);
+            }
             binding.checkboxMeat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                     if(b){
                         for(int i=0;i<users.size();i++){
                             if(user.id.equals(users.get(i).id)){
-                                Constants.userGroups.set(i,new UserGroup(user.id,"1",users.get(i).name,users.get(i).email,users.get(i).image,users.get(i).token));
+                                Constants.userGroups.set(i,new UserGroup(
+                                        user.id,
+                                        "1",
+                                        users.get(i).name,
+                                        users.get(i).email,
+                                        users.get(i).image,
+                                        users.get(i).token
+                                        )
+                                );
                             }
                         }
 
@@ -82,7 +100,15 @@ public class UsersGroupAdapter extends RecyclerView.Adapter<UsersGroupAdapter.Us
                     else{
                         for(int i=0;i<users.size();i++){
                             if(user.id.equals(users.get(i).id)){
-                                Constants.userGroups.set(i,new UserGroup(user.id,"0",users.get(i).name,users.get(i).email,users.get(i).image,users.get(i).token));
+                                Constants.userGroups.set(i,new UserGroup(
+                                        user.id,
+                                        "0",
+                                        users.get(i).name,
+                                        users.get(i).email,
+                                        users.get(i).image,
+                                        users.get(i).token
+                                        )
+                                );
                             }
                         }
                         Toast.makeText(itemView.getContext(), "Bạn đã bỏ chọn", Toast.LENGTH_SHORT).show();

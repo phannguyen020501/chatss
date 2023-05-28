@@ -45,9 +45,10 @@ public class UsersActivity extends BaseActivity implements UserListener {
         setContentView(binding.getRoot());
         preferenceManager = new PreferenceManager((getApplicationContext()));
         db = FirebaseFirestore.getInstance();
-
+        users = new ArrayList<>();
+        usersAdapter = new UsersAdapter(users, this);
         setListener();
-        getUsers();
+//        getUsers();
         listenUserDataChange();
         binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -84,7 +85,7 @@ public class UsersActivity extends BaseActivity implements UserListener {
                     loading(false);
                     String currentUserId = preferenceManager.getString(Constants.KEY_USED_ID);
                     if(task.isSuccessful() && task.getResult() != null){
-                        users = new ArrayList<>();
+                        List<User> users = new ArrayList<>();
                         for(QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
                             if(currentUserId.equals(queryDocumentSnapshot.getId())){
                                 continue;
@@ -102,7 +103,7 @@ public class UsersActivity extends BaseActivity implements UserListener {
                             users.add(user);
                         }
                         if(users.size() > 0){
-                            usersAdapter = new UsersAdapter(users,this);
+                            UsersAdapter usersAdapter = new UsersAdapter(users,this);
                             binding.usersRecyclerView.setAdapter(usersAdapter);
                             binding.usersRecyclerView.setVisibility(View.VISIBLE);
                         } else {
@@ -125,27 +126,30 @@ public class UsersActivity extends BaseActivity implements UserListener {
             return;
         }
         if (value != null) {
+
             for (DocumentChange documentChange : value.getDocumentChanges()) {
+
                 String userId = documentChange.getDocument().getId();
                 if (preferenceManager.getString(Constants.KEY_USED_ID) != null){
                     if (preferenceManager.getString(Constants.KEY_USED_ID).equals(userId)){
-                        break;
+                        continue;
                     }
                 }
 
-//                if (documentChange.getType() == DocumentChange.Type.ADDED) {
-//                    User user = new User();
-//                    user.name = documentChange.getDocument().getString(Constants.KEY_NAME);
-//                    user.email = documentChange.getDocument().getString(Constants.KEY_EMAIL);
-//                    user.image = documentChange.getDocument().getString(Constants.KEY_IMAGE);
-//                    user.token = documentChange.getDocument().getString(Constants.KEY_FCM_TOKEN);
-//                    user.id = documentChange.getDocument().getId();
-//                    if (documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY)!= null){
-//                        user.availability = Objects.requireNonNull(documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY)).intValue();
-//                    }
-//                    users.add(user);
-//                    usersAdapter.notifyItemInserted(users.size() - 1);
-//                }else
+                if (documentChange.getType() == DocumentChange.Type.ADDED) {
+                    User user = new User();
+                    user.name = documentChange.getDocument().getString(Constants.KEY_NAME);
+                    user.email = documentChange.getDocument().getString(Constants.KEY_EMAIL);
+                    user.image = documentChange.getDocument().getString(Constants.KEY_IMAGE);
+                    user.token = documentChange.getDocument().getString(Constants.KEY_FCM_TOKEN);
+                    user.id = documentChange.getDocument().getId();
+                    user.publicKey = documentChange.getDocument().getString(Constants.KEY_PUBLIC_KEY);
+                    if (documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY)!= null){
+                        user.availability = Objects.requireNonNull(documentChange.getDocument().getLong(Constants.KEY_AVAILABILITY)).intValue();
+                    }
+                    users.add(user);
+
+                }else
                 if (documentChange.getType() == DocumentChange.Type.MODIFIED) {
                     for (int i = 0; i < users.size(); i++) {
                         if (users.get(i).id.equals(userId)) {
@@ -169,7 +173,10 @@ public class UsersActivity extends BaseActivity implements UserListener {
                 }
 
             }
-
+            usersAdapter.notifyDataSetChanged();
+            binding.usersRecyclerView.setAdapter(usersAdapter);
+            binding.usersRecyclerView.setVisibility(View.VISIBLE);
+            binding.progressBar.setVisibility(View.GONE);
         }
     };
     private void showErrorMessage() {
@@ -215,24 +222,30 @@ public class UsersActivity extends BaseActivity implements UserListener {
                     user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                     user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                     user.id = queryDocumentSnapshot.getId();
-                    users.add(user);
-                    listEmail.add(user.email);
+//                    users.add(user);
+//                    listEmail.add(user.email);
+                    user.publicKey = queryDocumentSnapshot.getString(Constants.KEY_PUBLIC_KEY);
+                    if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                        user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                    }
+                    if (!users.contains(user)) users.add(user);
                 }
 
                 for(QueryDocumentSnapshot queryDocumentSnapshot : y.getResult()){
                     if(currentUserId.equals(queryDocumentSnapshot.getId())){
                         continue;
                     }
-                    if(!listEmail.contains(queryDocumentSnapshot.getString(Constants.KEY_EMAIL))){
-                        User user = new User();
-                        user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
-                        user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
-                        user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
-                        user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
-                        user.id = queryDocumentSnapshot.getId();
-                        users.add(user);
+                    User user = new User();
+                    user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                    user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
+                    user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
+                    user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
+                    user.id = queryDocumentSnapshot.getId();
+                    user.publicKey = queryDocumentSnapshot.getString(Constants.KEY_PUBLIC_KEY);
+                    if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                        user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
                     }
-
+                    if (!users.contains(user)) users.add(user);
                 }
 
                 if(users.size() > 0){

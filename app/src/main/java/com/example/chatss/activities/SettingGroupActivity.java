@@ -160,7 +160,7 @@ public class SettingGroupActivity extends BaseActivity implements UserListener {
 
 
     private void onEditEmailPressed(){
-        TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
+        TransitionManager.beginDelayedTransition(binding.profileActivityLayout, new AutoTransition());
         binding.include.itemEmail.textEmail.setVisibility(View.GONE);
         binding.include.itemEmail.icEdit.setVisibility(View.GONE);
         binding.include.itemEmail.editTextEmail.setVisibility(View.VISIBLE);
@@ -175,7 +175,7 @@ public class SettingGroupActivity extends BaseActivity implements UserListener {
 
                     binding.include.itemEmail.textEmail.setText(textEmail);
 
-                    TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
+                    TransitionManager.beginDelayedTransition(binding.profileActivityLayout, new AutoTransition());
                     binding.include.itemEmail.editTextEmail.setVisibility(View.GONE);
                     binding.include.itemEmail.containerBtn.setVisibility(View.GONE);
 
@@ -189,7 +189,7 @@ public class SettingGroupActivity extends BaseActivity implements UserListener {
                 });
     }
     private void onCancelEmailPressed(){
-        TransitionManager.beginDelayedTransition(binding.layoutscroll, new AutoTransition());
+        TransitionManager.beginDelayedTransition(binding.profileActivityLayout, new AutoTransition());
         binding.include.itemEmail.textEmail.setVisibility(View.VISIBLE);
         binding.include.itemEmail.icEdit.setVisibility(View.VISIBLE);
         binding.include.itemEmail.editTextEmail.setVisibility(View.GONE);

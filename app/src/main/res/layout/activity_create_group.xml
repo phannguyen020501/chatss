@@ -55,7 +55,7 @@
 
     </ImageView>
     <EditText
-        android:hint="Đặt tên nhóm"
+        android:hint="Your group name"
         android:id="@+id/edtCreateGroup"
         android:background="@color/input_background"
         android:layout_width="0dp"
@@ -71,6 +71,7 @@
         android:layout_marginTop="5dp"
         android:layout_marginEnd="@dimen/_5sdp"
         android:id="@+id/btnCreateGroup"
+        android:enabled="false"
         android:layout_gravity="center_horizontal"/>
 </LinearLayout>
 

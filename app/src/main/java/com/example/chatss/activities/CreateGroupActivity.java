@@ -2,7 +2,9 @@ package com.example.chatss.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.SearchView;
@@ -14,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.chatss.adapter.UsersGroupAdapter;
 import com.example.chatss.databinding.ActivityCreateGroupBinding;
 import com.example.chatss.listeners.UserListener;
+import com.example.chatss.models.RoomChat;
 import com.example.chatss.models.User;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
@@ -32,6 +35,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class CreateGroupActivity extends AppCompatActivity implements UserListener {
     private ActivityCreateGroupBinding binding;
@@ -85,6 +89,21 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                 Log.d("a", "Count failed: ", task.getException());
             }
         });
+        binding.edtCreateGroup.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                binding.btnCreateGroup.setEnabled(charSequence.length() > 0 && checkCheckBoxisCheck());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
     }
 
     private void createGroup() {
@@ -100,6 +119,10 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     roomChat.put("name", binding.edtCreateGroup.getText().toString());
                     roomChat.put("lastMessage", "");
                     roomChat.put("idUserCreate", preferenceManager.getString(Constants.KEY_USED_ID));
+                    RoomChat roomChat1 = new RoomChat();
+                    roomChat1.id =  String.valueOf(cntRoomChat);
+                    roomChat1.name = binding.edtCreateGroup.getText().toString();
+                    roomChat1.lastMessage = "";
                     roomChat.put("image", "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");
                     binding.edtCreateGroup.getText().clear();
                     // tao phong chat
@@ -109,66 +132,37 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                                 for(int i=0;i<Constants.userGroups.size();i++){
                                     if(Constants.userGroups.get(i).checked.equals("1")){
                                         // them roomChat cho cac user duoc moi tham gia
+                                        int finalI = i;
                                         database.collection("ListRoomUser").document(Constants.userGroups.get(i).id).collection("ListRoom").document(String.valueOf(cntRoomChat))
                                                 .set(roomChat)
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        // nguoi trong nhom
+                                                .addOnSuccessListener(aVoid -> {
+                                                    // nguoi trong nhom
+                                                    database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userGroups.get(finalI).id)
+                                                            .set(Constants.userGroups.get(finalI))
+                                                            .addOnSuccessListener(aVoid1 -> database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(String.valueOf(cntRoomChat))
+                                                                    .set(roomChat)
+                                                                    .addOnSuccessListener(aVoid11 -> database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userCurrent.getId())
+                                                                            .set(Constants.userCurrent)
+                                                                            .addOnSuccessListener(aVoid111 -> {
+                                                                                Intent intent = new Intent(getApplicationContext(), ChatGroupActivity.class);
+                                                                                intent.putExtra(Constants.KEY_ROOM, roomChat1);
+                                                                                startActivity(intent);
+                                                                                finish();
+                                                                            })
+                                                                            .addOnFailureListener(e -> {
 
-                                                    }
+                                                                            }))
+                                                                    .addOnFailureListener(e -> {
+
+                                                                    }))
+                                                            .addOnFailureListener(e -> {
+
+                                                            });
                                                 })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-
-                                                    }
-                                                });
-                                        database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userGroups.get(i).id)
-                                                .set(Constants.userGroups.get(i))
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-
-                                                    }
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-
-                                                    }
+                                                .addOnFailureListener(e -> {
                                                 });
                                     }
                                 }
-                                database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(String.valueOf(cntRoomChat))
-                                        .set(roomChat)
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-                                                onBackPressed();
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-
-                                            }
-                                        });
-
-                                database.collection("Participants").document(String.valueOf(cntRoomChat)).collection("Users").document(Constants.userCurrent.getId())
-                                        .set(Constants.userCurrent)
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-
-                                            }
-                                        });
                                 loading(false);
                             })
                             .addOnFailureListener(exception -> {
@@ -178,6 +172,14 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                 }
             }
         });
+    }
+    private Boolean checkCheckBoxisCheck(){
+        for(int i=0;i<Constants.userGroups.size();i++) {
+            if (Constants.userGroups.get(i).checked.equals("1")) {
+                return true;
+            }
+        }
+        return false;
     }
     private void showToast (String message){
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();;
@@ -206,6 +208,9 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                             user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                             user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                             user.id = queryDocumentSnapshot.getId();
+                            if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                                user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                            }
                             users.add(user);
                         }
                         if(users.size() > 0){
@@ -256,6 +261,9 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                     user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                     user.id = queryDocumentSnapshot.getId();
+                    if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                        user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                    }
                     users.add(user);
                     listEmail.add(user.email);
                 }
@@ -264,16 +272,16 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     if(currentUserId.equals(queryDocumentSnapshot.getId())){
                         continue;
                     }
-                    if(!listEmail.contains(queryDocumentSnapshot.getString(Constants.KEY_EMAIL))){
-                        User user = new User();
-                        user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
-                        user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
-                        user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
-                        user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
-                        user.id = queryDocumentSnapshot.getId();
-                        users.add(user);
+                    User user = new User();
+                    user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                    user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
+                    user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
+                    user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
+                    user.id = queryDocumentSnapshot.getId();
+                    if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                        user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
                     }
-
+                    users.add(user);
                 }
 
                 if(users.size() > 0){
@@ -297,9 +305,6 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
 
     @Override
     public void onUserClicked(User user) {
-        Intent intent = new Intent(getApplicationContext(), ChatGroupActivity.class);
-        intent.putExtra(Constants.KEY_USER, user);
-        startActivity(intent);
-        finish();
+
     }
 }

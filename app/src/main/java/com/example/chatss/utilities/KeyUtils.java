@@ -82,7 +82,7 @@ public class KeyUtils {
     private static final String KEYSTORE_PATH = file.getAbsolutePath();
     private static Boolean isCreatedKeystore = false;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
+
     public static void main(String[] args) throws Exception {
         Security.removeProvider("BC");
         Security.addProvider(new BouncyCastleProvider());
@@ -160,7 +160,7 @@ public class KeyUtils {
 
 
     }
-    @RequiresApi(api = Build.VERSION_CODES.M)
+
     public static void tryr() throws Exception {
         String plainText = "Look mah, I'm a message!";
         System.out.println("Original plaintext message: " + plainText);
@@ -261,7 +261,6 @@ public class KeyUtils {
 
         return null;
     }
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public static KeyPair generateECKeys() {
         try {
             ECNamedCurveParameterSpec parameterSpec = ECNamedCurveTable.getParameterSpec("brainpoolp256r1");
