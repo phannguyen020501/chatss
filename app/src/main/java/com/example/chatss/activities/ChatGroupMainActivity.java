@@ -56,6 +56,9 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
     }
     public void init(){
         //database = FirebaseFirestore.getInstance();
+        binding.imageProfile.setOnClickListener(v -> {
+            startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
+        });
         binding.fabNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

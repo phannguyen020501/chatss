@@ -64,7 +64,7 @@ public class IndivisualFragment extends Fragment implements ConversionListener {
         // Perform any further operations with the binding
         preferenceManager = new PreferenceManager(this.getActivity());
         priKeyStr = preferenceManager.getString(Constants.KEY_PRIVATE_KEY);
-        if (preferenceManager.getString(Constants.KEY_PRIVATE_KEY) == null){
+        if (priKeyStr == null){
             binding.progressBar.setVisibility(View.GONE);
             return rootView;
         }

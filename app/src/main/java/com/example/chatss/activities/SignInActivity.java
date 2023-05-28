@@ -130,11 +130,6 @@ public class SignInActivity extends AppCompatActivity {
                 else {
                     binding.inputPassword.setBackgroundResource(R.drawable.background_input);
                     binding.inputPassword.setHintTextColor(colorDefault);
-//                    if (binding.inputCurrentPass.getText().toString().isEmpty()) {
-//                        binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_wrong);
-//                    } else {
-//                        binding.inputCurrentPass.setBackgroundResource(R.drawable.background_input_good);
-//                    }
                 }
             }
         });
@@ -168,6 +163,7 @@ public class SignInActivity extends AppCompatActivity {
                         preferenceManager.putString(Constants.KEY_NAME, documentSnapshot.getString(Constants.KEY_NAME));
                         preferenceManager.putString(Constants.KEY_IMAGE, documentSnapshot.getString(Constants.KEY_IMAGE));
                         preferenceManager.putString(Constants.KEY_EMAIL, documentSnapshot.getString(Constants.KEY_EMAIL));
+                        preferenceManager.putString(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
                         preferenceManager.putString(Constants.KEY_PUBLIC_KEY, documentSnapshot.getString(Constants.KEY_PUBLIC_KEY));
 
                         //Lấy private Key từ KeyStore
@@ -226,18 +222,4 @@ public class SignInActivity extends AppCompatActivity {
         }
     }
 
-//    private void addDataToFirestore(){
-//        FirebaseFirestore database = FirebaseFirestore.getInstance();
-//        HashMap<String, Object> data = new HashMap<>();
-//        data.put("first_name","phan");
-//        data.put("last_name", "nguyen");
-//        database.collection("users")
-//                .add(data)
-//                .addOnSuccessListener(documentReference -> {
-//                    Toast.makeText(getApplicationContext(), "data inserted", Toast.LENGTH_SHORT).show();
-//        })
-//                .addOnFailureListener(exception->{
-//                    Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_SHORT).show();
-//                });
-//    }
 }

@@ -119,7 +119,7 @@ public class AddMemberActivity extends AppCompatActivity implements UserListener
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
                                                     public void onSuccess(Void aVoid) {
-                                                        Toast.makeText(getApplicationContext(), String.valueOf(roomChatCurrent.getId()), Toast.LENGTH_SHORT).show();
+                                                       // Toast.makeText(getApplicationContext(), String.valueOf(roomChatCurrent.getId()), Toast.LENGTH_SHORT).show();
                                                     }
                                                 })
                                                 .addOnFailureListener(new OnFailureListener() {
@@ -203,7 +203,7 @@ public class AddMemberActivity extends AppCompatActivity implements UserListener
                         }
                         if(users.size() > 0){
                             UsersGroupAdapter usersGroupAdapter = new UsersGroupAdapter(users,this);
-                            Toast.makeText(getApplicationContext(), String.valueOf(users.size()), Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getApplicationContext(), String.valueOf(users.size()), Toast.LENGTH_SHORT).show();
                             binding.usersRecyclerView.setAdapter(usersGroupAdapter);
                             binding.usersRecyclerView.setVisibility(View.VISIBLE);
                         } else {

@@ -66,9 +66,7 @@ import org.bouncycastle.x509.X509V3CertificateGenerator;
 public class ECCc {
     public static byte[] iv = new SecureRandom().generateSeed(16);
 
-    private static final String KEYSTORE_PATH = "app/keystore";
     private static final String KEYSTORE_PASSWORD = "123456";
-
 
     private static final String KEYSTORE_FILENAME = "keystore.bks";
 
@@ -77,84 +75,8 @@ public class ECCc {
         Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
         Security.addProvider(new BouncyCastleProvider());
 
-        String plainText = "Look mah, I'm a message!";
-        System.out.println("Original plaintext message: " + plainText);
-
-        // Initialize two key pairs
-        KeyPair keyPairA = generateECKeys();
-        KeyPair keyPairB = generateECKeys();
-//        System.out.println("public key a: " + Hex.toHexString(keyPairA.getPublic().getEncoded()));
-        // Create two AES secret keys to encrypt/decrypt the message
-
-
-//
-//        PublicKey publicKey1 = keyPairA.getPublic();
-//        PublicKey publicKey2 = keyPairB.getPublic();
-//        PrivateKey privateKey1 = keyPairA.getPrivate();
-//        PrivateKey privateKey2 = keyPairB.getPrivate();
-//
-//        System.out.println("to string");
-//        System.out.println("public key");
-//        String pubString1 = publicKeyToString(publicKey1);
-//        String pubString2 = publicKeyToString(publicKey2);
-//        System.out.println(pubString1);
-//        System.out.println(pubString2);
-//
-//        System.out.println("private key");
-//        String priString1 = privateKeyToString(privateKey1);
-//        String priString2 = privateKeyToString(privateKey2);
-//        System.out.println(priString1);
-//        System.out.println(priString2);
-//
-//        System.out.println("string to key");
-//        PublicKey pub1 = stringToPublicKey(pubString1);
-//        PublicKey pub2 = stringToPublicKey(pubString2);
-//        System.out.println(pub1);
-//        System.out.println(pub2);
-//
-//        PrivateKey pri1 = stringToPrivateKey(priString1);
-//        PrivateKey pri2 = stringToPrivateKey(priString2);
-//        System.out.println(pri1);
-//        System.out.println(pri2);
-//
-//        SecretKey secretKeyA = generateSharedSecret(pri1, pub2);
-//        SecretKey secretKeyB = generateSharedSecret(pri2, pub1);
-//
-//        // Encrypt the message using 'secretKeyA'
-//        String cipherText = encryptString(secretKeyA, plainText);
-//        System.out.println("Encrypted cipher text: " + cipherText);
-//
-//        // Decrypt the message using 'secretKeyB'
-//        String decryptedPlainText = decryptString(secretKeyB, cipherText);
-//        System.out.println("Decrypted cipher text: " + decryptedPlainText);
-
-//          createKeyStore();
-
-
-//        KeyStore keyStore = loadKeyStore();
-//        if(keyStore != null){
-//            System.out.println("đã có keystore");
-//        }else{
-//            System.out.println("ko có keystore");
-//        }
-
-        String alias = "b3@gmail.com";
-        String password = "123456";
-        KeyPair k = generateECKeys();
-        //savePrivateKey(alias, password, k );
-        //PrivateKey p3 = getPrivateKeyFromKeyStore(alias, password);
-        //System.out.println(privateKeyToString(p3));
-        //keyStore = loadKeyStore();
-        //System.out.println("Loaded keystore: " + keyStore.size() + " entries");
-
     }
     public static void savePrivateKey(Context context, String email, String password, KeyPair keyPair) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
-        // Tạo một khóa bí mật mới
-//        KeyPair keyPair =generateECKeys();
-        System.out.println("keypair");
-        System.out.println(keyPair.getPrivate());
-        System.out.println(keyPair.getPublic());
-
 
         // Tạo một certificate tự ký
         X509Certificate selfSignedCert = generateSelfSignedCertificate(keyPair);
@@ -169,11 +91,57 @@ public class ECCc {
 
         FileOutputStream fos = new FileOutputStream(getKeyStoreFile(context));
 
+        keyStore.store(fos, KEYSTORE_PASSWORD.toCharArray());
+        fos.close();
+
+    }
+
+    public static void savePrivateKey2(Context context, String email, String password, PrivateKey privateKey, PublicKey publicKey) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
+        // Tạo một khóa bí mật mới
+//        KeyPair keyPair =generateECKeys();
+        System.out.println("keypair");
+        System.out.println(privateKey);
+        System.out.println(publicKey);
+
+
+        // Tạo một certificate tự ký
+        X509Certificate selfSignedCert = generateSelfSignedCertificate2(privateKey, publicKey);
+        System.out.println(selfSignedCert);
+
+
+        // Lưu khóa bí mật và chứng chỉ vào keystore
+        KeyStore keyStore = loadKeyStore(context);
+        KeyStore.PrivateKeyEntry privateKeyEntry = new KeyStore.PrivateKeyEntry(privateKey, new Certificate[]{selfSignedCert});
+        KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(password.toCharArray());
+        keyStore.setEntry(email, privateKeyEntry, passwordProtection);
+
+        FileOutputStream fos = new FileOutputStream(getKeyStoreFile(context));
+
         //FileOutputStream fos = new FileOutputStream(KEYSTORE_PATH);
         keyStore.store(fos, KEYSTORE_PASSWORD.toCharArray());
         fos.close();
 
     }
+    private static X509Certificate generateSelfSignedCertificate2(PrivateKey privateKey, PublicKey publickey) throws CertificateException {
+        try {
+            X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
+                    new X500Name("CN=Test"),
+                    new BigInteger(64, new SecureRandom()),
+                    new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24),
+                    new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365)),
+                    new X500Name("CN=Test"),
+                    publickey
+            );
+
+            ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WithECDSA")
+                    .build(privateKey);
+
+            return new JcaX509CertificateConverter().getCertificate(certBuilder.build(contentSigner));
+        } catch (Exception e) {
+            throw new CertificateException("Failed to generate self-signed certificate", e);
+        }
+    }
+
 
     public static PrivateKey getPrivateKeyFromKeyStore(Context context, String alias, String keyPassword) {
         try {
@@ -192,22 +160,6 @@ public class ECCc {
         }
 
         return null;
-    }
-    public static KeyPair generateECKeys1() {
-        try {
-            ECNamedCurveParameterSpec parameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1");
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(
-                    "EC", "BC");
-
-            keyPairGenerator.initialize(parameterSpec);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
-
-            return keyPair;
-        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException
-                 | NoSuchProviderException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     public static KeyPair generateECKeys() {
@@ -300,87 +252,8 @@ public class ECCc {
 
         return decryptedText;
     }
-//    public static String encryptString(SecretKey key, String plainText) {
-//        try {
-//            IvParameterSpec ivSpec = new IvParameterSpec(iv);
-//            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
-//            byte[] plainTextBytes = plainText.getBytes(StandardCharsets.UTF_8);
-//            byte[] cipherText;
-//
-//            cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);
-//            cipherText = new byte[cipher.getOutputSize(plainTextBytes.length)];
-//            int encryptLength = cipher.update(plainTextBytes, 0,
-//                    plainTextBytes.length, cipherText, 0);
-//            encryptLength += cipher.doFinal(cipherText, encryptLength);
-//
-//            return bytesToHex(cipherText);
-//        } catch (NoSuchAlgorithmException | NoSuchProviderException
-//                 | NoSuchPaddingException | InvalidKeyException
-//                 | InvalidAlgorithmParameterException
-//                 | ShortBufferException
-//                 | IllegalBlockSizeException | BadPaddingException e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//    }
-//
-//    public static String decryptString(SecretKey key, String cipherText) {
-//        try {
-//            Key decryptionKey = new SecretKeySpec(key.getEncoded(),
-//                    key.getAlgorithm());
-//            IvParameterSpec ivSpec = new IvParameterSpec(iv);
-//            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
-//            byte[] cipherTextBytes = hexToBytes(cipherText);
-//            byte[] plainText;
-//
-//            cipher.init(Cipher.DECRYPT_MODE, decryptionKey, ivSpec);
-//            plainText = new byte[cipher.getOutputSize(cipherTextBytes.length)];
-//            int decryptLength = cipher.update(cipherTextBytes, 0,
-//                    cipherTextBytes.length, plainText, 0);
-//            decryptLength += cipher.doFinal(plainText, decryptLength);
-//
-//            return new String(plainText, "UTF-8");
-//        } catch (NoSuchAlgorithmException | NoSuchProviderException
-//                 | NoSuchPaddingException | InvalidKeyException
-//                 | InvalidAlgorithmParameterException
-//                 | IllegalBlockSizeException | BadPaddingException
-//                 | ShortBufferException | UnsupportedEncodingException e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//    }
-
-    public static String bytesToHex(byte[] data, int length) {
-        String digits = "0123456789ABCDEF";
-        StringBuffer buffer = new StringBuffer();
-
-        for (int i = 0; i != length; i++) {
-            int v = data[i] & 0xff;
-
-            buffer.append(digits.charAt(v >> 4));
-            buffer.append(digits.charAt(v & 0xf));
-        }
-
-        return buffer.toString();
-    }
-
-    public static String bytesToHex(byte[] data) {
-        return bytesToHex(data, data.length);
-    }
-
-    public static byte[] hexToBytes(String string) {
-        int length = string.length();
-        byte[] data = new byte[length / 2];
-        for (int i = 0; i < length; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(string.charAt(i), 16) << 4) + Character
-                    .digit(string.charAt(i + 1), 16));
-        }
-        return data;
-    }
-
 
     public static String publicKeyToString(PublicKey publicKey) throws IOException {
-//        Security.addProvider(new BouncyCastleProvider());
 
         SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
         PemObject pemObject = new PemObject("PUBLIC KEY", subjectPublicKeyInfo.getEncoded());
@@ -394,7 +267,6 @@ public class ECCc {
     }
 
     public static PublicKey stringToPublicKey(String publicKeyString) throws Exception {
-//        Security.addProvider(new BouncyCastleProvider());
 
         // Đọc chuỗi PEM
         PEMParser pemParser = new PEMParser(new StringReader(publicKeyString));
@@ -412,7 +284,6 @@ public class ECCc {
     }
 
     public static PrivateKey stringToPrivateKey(String privateKeyString) throws Exception {
-//        Security.addProvider(new BouncyCastleProvider());
 
         // Đọc chuỗi PEM
         PEMParser pemParser = new PEMParser(new StringReader(privateKeyString));
@@ -431,7 +302,7 @@ public class ECCc {
     }
 
     public static String privateKeyToString(PrivateKey privateKey) throws IOException {
-//        Security.addProvider(new BouncyCastleProvider());
+
         PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(privateKey.getEncoded());
         PemObject pemObject = new PemObject("PRIVATE KEY", privateKeyInfo.getEncoded());
 
@@ -462,26 +333,9 @@ public class ECCc {
             throw new CertificateException("Failed to generate self-signed certificate", e);
         }
     }
-
-    public static X509Certificate generateCertificate(KeyPair keyPair) throws CertificateEncodingException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
-        Date startDate = new Date(); // Ngày bắt đầu chứng chỉ
-        Date expiryDate = new Date(startDate.getTime() + 365 * 24 * 60 * 60 * 1000L); // Ngày hết hạn chứng chỉ
-        X509V3CertificateGenerator cert = new X509V3CertificateGenerator();
-        cert.setSerialNumber(BigInteger.valueOf(1));   //or generate a random number
-        cert.setSubjectDN(new X509Principal("CN=localhost"));  //see examples to add O,OU etc
-        cert.setIssuerDN(new X509Principal("CN=localhost")); //same since it is self-signed
-        cert.setPublicKey(keyPair.getPublic());
-        cert.setNotBefore(startDate);
-        cert.setNotAfter(expiryDate);
-        cert.setSignatureAlgorithm("SHA256withECDSA");
-        PrivateKey signingKey = keyPair.getPrivate();
-        return cert.generate(signingKey);
-    }
-
     public static KeyStore loadKeyStore(Context context) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
         KeyStore keyStore = KeyStore.getInstance("BKS");
 
-        //FileInputStream fis = new FileInputStream(KEYSTORE_PATH);
 
         File keyStoreFile = getKeyStoreFile(context);
         if (!keyStoreFile.exists()) {
@@ -499,17 +353,6 @@ public class ECCc {
 
     private static File getKeyStoreFile(Context context) {
         return new File(context.getFilesDir(), KEYSTORE_FILENAME);
-    }
-
-
-    public static KeyStore createKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
-        KeyStore keyStore = KeyStore.getInstance("BKS");
-        keyStore.load(null, KEYSTORE_PASSWORD.toCharArray());
-
-        FileOutputStream fos = new FileOutputStream(KEYSTORE_PATH);
-        keyStore.store(fos, KEYSTORE_PASSWORD.toCharArray());
-        fos.close();
-        return keyStore;
     }
 
 }

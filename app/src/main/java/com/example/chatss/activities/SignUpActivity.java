@@ -155,6 +155,7 @@ public class SignUpActivity extends AppCompatActivity {
                     preferenceManager.putString(Constants.KEY_NAME,binding.inputName.getText().toString());
                     preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
                     preferenceManager.putString(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
+                    preferenceManager.putString(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
                     preferenceManager.putString(Constants.KEY_PRIVATE_KEY, priKeyStr);
                     preferenceManager.putString(Constants.KEY_PUBLIC_KEY, publicKeyString);
                     Intent intent = new Intent(getApplicationContext(), MainActivity2.class);

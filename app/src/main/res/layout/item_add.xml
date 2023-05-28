@@ -228,19 +228,21 @@
             android:layout_marginBottom="@dimen/_4sdp"
             android:visibility="gone">
             <Button
-                android:id="@+id/btn_OK"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/_8sdp"
-                android:text="OK"
-                />
-            <Button
                 android:id="@+id/btn_Cancel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="@dimen/_70sdp"
+                android:layout_height="@dimen/_35sdp"
                 android:layout_marginEnd="@dimen/_8sdp"
                 android:backgroundTint="@color/red"
+                android:textSize="@dimen/_10ssp"
                 android:text="Cancel"
+                />
+            <Button
+                android:id="@+id/btn_OK"
+                android:layout_width="@dimen/_70sdp"
+                android:layout_height="@dimen/_35sdp"
+                android:layout_marginEnd="@dimen/_20sdp"
+                android:textSize="@dimen/_10ssp"
+                android:text="OK"
                 />
 
         </LinearLayout>

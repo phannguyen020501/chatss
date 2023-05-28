@@ -3,6 +3,7 @@ package com.example.chatss.activities;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -34,6 +35,12 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,21 +52,16 @@ public class MainActivity2 extends BaseActivity {
     private ChatViewPagerAdapter chatViewPagerAdapter;
     public static final int MY_REQUEST_NOTI_CODE = 0;
     private PreferenceManager preferenceManager;
-    private List<ChatMessage> conversations;
-    private RecentConversationsAdapter conversationsAdapter;
-    private FirebaseFirestore database;
-    private ListenerRegistration registration;
-    private String priKeyStr;
+    private TabLayoutMediator tabLayoutMediator;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMain1Binding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        chatViewPagerAdapter = new ChatViewPagerAdapter(this);
-        binding.viewPaper.setAdapter(chatViewPagerAdapter);
 
-        new TabLayoutMediator(binding.tabLayout,binding.viewPaper,(tab, position) -> {
+
+        tabLayoutMediator = new TabLayoutMediator(binding.tabLayout,binding.viewPaper,(tab, position) -> {
             switch (position){
                 case 0:
                     tab.setText("Chats");
@@ -68,20 +70,70 @@ public class MainActivity2 extends BaseActivity {
                     tab.setText("Groups");
                     break;
             }
-        }).attach();
+        });
 
         askNotificationPermission();
         preferenceManager = new PreferenceManager(getApplicationContext());
-        priKeyStr = preferenceManager.getString(Constants.KEY_PRIVATE_KEY);
         loadUserDetails();
         if (preferenceManager.getString(Constants.KEY_PRIVATE_KEY) == null){
+            binding.viewPaper.setVisibility(View.GONE);
+            binding.viewNoPrivateKey.setVisibility(View.VISIBLE);
+            binding.scanBtn.setOnClickListener(v -> {
+                ScanOptions options = new ScanOptions();
+                options.setPrompt("Scan a QR Code");
+                options.setCameraId(0);  // Use a specific camera of the device
+                options.setBeepEnabled(true);
+                options.setOrientationLocked(false);
+                barcodeLauncher.launch(options);
+
+            });
             binding.imageSignOut.setOnClickListener(v -> signOut());
             return;
         }
+        chatViewPagerAdapter = new ChatViewPagerAdapter(this);
+        binding.viewPaper.setAdapter(chatViewPagerAdapter);
+        tabLayoutMediator.attach();
         getToken();
         setListeners();
     }
 
+    // Register the launcher and result handler
+    private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(),
+            result -> {
+                if(result.getContents() == null) {
+                    Toast.makeText(MainActivity2.this, "Scan QR Code Cancelled", Toast.LENGTH_LONG).show();
+                } else {
+                    // if the intentResult is not null we'll set
+                    // the content and format of scan message
+                    try {
+                        // Phân tích dữ liệu JSON
+                        JSONObject jsonData = new JSONObject(result.getContents());
+                        String email = jsonData.getString("email");
+                        String privateKey = jsonData.getString("privateKey");
+
+                        // Xử lý dữ liệu
+                        if (!email.equals(preferenceManager.getString(Constants.KEY_EMAIL))){
+                            showToast("Wrong account, please check again!");
+                            return;
+                        }else {
+                            preferenceManager.putString(Constants.KEY_PRIVATE_KEY, privateKey);
+                            binding.textContent.setText("Get Data Successful");
+
+                            binding.viewNoPrivateKey.setVisibility(View.GONE);
+                            binding.viewPaper.setVisibility(View.VISIBLE);
+
+                            chatViewPagerAdapter = new ChatViewPagerAdapter(this);
+                            binding.viewPaper.setAdapter(chatViewPagerAdapter);
+
+                            tabLayoutMediator.attach();
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            });
 
     private void setListeners(){
         binding.imageProfile.setOnClickListener(v -> {

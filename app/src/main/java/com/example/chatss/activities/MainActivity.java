@@ -1,5 +1,6 @@
 package com.example.chatss.activities;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 
@@ -43,6 +44,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 import org.checkerframework.checker.units.qual.C;
 
@@ -67,7 +70,7 @@ public class MainActivity extends BaseActivity implements ConversionListener {
     private RecentConversationsAdapter conversationsAdapter;
     private FirebaseFirestore database;
     private ListenerRegistration registration;
-    private String priKeyStr;
+    private String priKeyStr, myPublicKey;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,15 +83,51 @@ public class MainActivity extends BaseActivity implements ConversionListener {
         priKeyStr = preferenceManager.getString(Constants.KEY_PRIVATE_KEY);
         loadUserDetails();
         if (preferenceManager.getString(Constants.KEY_PRIVATE_KEY) == null){
-            binding.progressBar.setVisibility(View.GONE);
+            binding.conversationRecyclerView.setVisibility(View.GONE);
+            binding.viewNoPrivateKey.setVisibility(View.VISIBLE);
+            //binding.progressBar.setVisibility(View.GONE);
             binding.imageSignOut.setOnClickListener(v -> signOut());
+            binding.scanBtn.setOnClickListener(v -> {
+                IntentIntegrator intentIntegrator = new IntentIntegrator(this);
+                intentIntegrator.setPrompt("Scan a barcode or QR Code");
+                intentIntegrator.setOrientationLocked(true);
+                intentIntegrator.initiateScan();
+
+            });
             return;
+        } else{
+            binding.viewNoPrivateKey.setVisibility(View.GONE);
         }
+
         init();
         getToken();
         setListeners();
         listenConversations();
         listenUserOnline();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        IntentResult intentResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        // if the intentResult is null then
+        // toast a message as "cancelled"
+        if (intentResult != null) {
+            if (intentResult.getContents() == null) {
+                Toast.makeText(getBaseContext(), "Cancelled", Toast.LENGTH_SHORT).show();
+            } else {
+                // if the intentResult is not null we'll set
+                // the content and format of scan message
+                String privateKey = intentResult.getContents();
+                preferenceManager.putString(Constants.KEY_PRIVATE_KEY, privateKey);
+                binding.textContent.setText("Get Private Successful");
+                binding.viewNoPrivateKey.setVisibility(View.GONE);
+                binding.conversationRecyclerView.setVisibility(View.VISIBLE);
+
+            }
+        }else{
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
     // Declare the launcher at the top of your Activity/Fragment:
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -239,6 +278,7 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                         chatMessage.conversionImage = documentChange.getDocument().getString(Constants.KEY_RECEIVER_IMAGE);
                         chatMessage.conversionName = documentChange.getDocument().getString(Constants.KEY_RECEIVER_NAME);
                         chatMessage.conversionPublicKey = documentChange.getDocument().getString(Constants.KEY_RECEIVER_PUBLIC_KEY);
+                        myPublicKey = documentChange.getDocument().getString(Constants.KEY_SENDER_PUBLIC_KEY);
 
                     }else {
                         getInitStatusUser(senderId ,chatMessage);
@@ -246,10 +286,21 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                         chatMessage.conversionName = documentChange.getDocument().getString(Constants.KEY_SENDER_NAME);
                         chatMessage.conversionId = documentChange.getDocument().getString(Constants.KEY_SENDER_ID);
                         chatMessage.conversionPublicKey = documentChange.getDocument().getString(Constants.KEY_SENDER_PUBLIC_KEY);
+                        myPublicKey = documentChange.getDocument().getString(Constants.KEY_RECEIVER_PUBLIC_KEY);
 
                     }
 
                     try {
+                        //save in new device
+                        PrivateKey privateKey = ECCc.stringToPrivateKey(preferenceManager.getString(Constants.KEY_PRIVATE_KEY));
+                        PublicKey publicKey = ECCc.stringToPublicKey(myPublicKey);
+                        ECCc.savePrivateKey2(getApplicationContext(),
+                                preferenceManager.getString(Constants.KEY_EMAIL),
+                                preferenceManager.getString(Constants.KEY_PASSWORD),
+                                privateKey, publicKey
+                        );
+
+
                         PrivateKey priKey = ECCc.stringToPrivateKey(priKeyStr);
                         PublicKey pubKey = ECCc.stringToPublicKey(chatMessage.conversionPublicKey);
                         SecretKey secretKey = ECCc.generateSharedSecret(priKey, pubKey);
@@ -273,6 +324,7 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                                 e.printStackTrace();
                                 conversations.get(i).message = "";
                             }
+                            //conversations.get(i).message = documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE);
                             conversations.get(i).dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
                             break;
                         }
