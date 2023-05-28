@@ -17,13 +17,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.MediaController;
 import android.widget.Toast;
 
-import com.example.chatss.BuildConfig;
+//import com.example.chatss.BuildConfig;
 import com.example.chatss.ECC.ECCc;
 import com.example.chatss.R;
 import com.example.chatss.databinding.ActivitySignInBinding;
@@ -31,6 +32,11 @@ import com.example.chatss.databinding.ActivitySignUpBinding;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.KeyUtils;
 import com.example.chatss.utilities.PreferenceManager;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -60,6 +66,8 @@ public class SignUpActivity extends AppCompatActivity {
 
     FirebaseFirestore db;
     Boolean isExistEmail;
+    private FirebaseAuth firebaseAuth;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +76,7 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         preferenceManager = new PreferenceManager(getApplicationContext());
         db = FirebaseFirestore.getInstance();
+        firebaseAuth = FirebaseAuth.getInstance();
         onEditTextStatusChange();
         setListeners();
 
@@ -135,7 +144,6 @@ public class SignUpActivity extends AppCompatActivity {
         HashMap<String, Object> user = new HashMap<>();
         user.put(Constants.KEY_NAME, binding.inputName.getText().toString());
         user.put(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
-        user.put(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
         user.put(Constants.KEY_IMAGE, encodedImage);
         user.put(Constants.KEY_PUBLIC_KEY, publicKeyString);
 
@@ -146,25 +154,43 @@ public class SignUpActivity extends AppCompatActivity {
                 keyPair
         );
 
-        db.collection(Constants.KEY_COLLECTION_USERS)
-                .add(user)
-                .addOnSuccessListener(documentReference -> {
-                    loading(false);
-                    preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
-                    preferenceManager.putString(Constants.KEY_USED_ID, documentReference.getId());
-                    preferenceManager.putString(Constants.KEY_NAME,binding.inputName.getText().toString());
-                    preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
-                    preferenceManager.putString(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
-                    preferenceManager.putString(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
-                    preferenceManager.putString(Constants.KEY_PRIVATE_KEY, priKeyStr);
-                    preferenceManager.putString(Constants.KEY_PUBLIC_KEY, publicKeyString);
-                    Intent intent = new Intent(getApplicationContext(), MainActivity2.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                })
-                .addOnFailureListener(exception ->{
-                    loading(false);
-                    showToast(exception.getMessage());
+        firebaseAuth.createUserWithEmailAndPassword(binding.inputEmail.getText().toString(), binding.inputPassword.getText().toString())
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            System.out.println("create success");
+                            if(firebaseAuth.getCurrentUser() != null){
+                                user.put("id", firebaseAuth.getCurrentUser().getUid());
+                            }
+                            DocumentReference userInfor = db.collection(Constants.KEY_COLLECTION_USERS).document(firebaseAuth.getCurrentUser().getUid());
+                            userInfor.set(user).addOnSuccessListener(documentReference -> {
+                                        loading(false);
+                                        preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
+                                        preferenceManager.putString(Constants.KEY_USED_ID, firebaseAuth.getCurrentUser().getUid());
+                                        preferenceManager.putString(Constants.KEY_NAME,binding.inputName.getText().toString());
+                                        preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
+                                        preferenceManager.putString(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
+                                        preferenceManager.putString(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
+                                        preferenceManager.putString(Constants.KEY_PRIVATE_KEY, priKeyStr);
+                                        preferenceManager.putString(Constants.KEY_PUBLIC_KEY, publicKeyString);
+                                        Intent intent = new Intent(getApplicationContext(), MainActivity2.class);
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                        startActivity(intent);
+
+                                    })
+                                    .addOnFailureListener(exception ->{
+                                        loading(false);
+                                        showToast(exception.getMessage());
+                                    });
+
+
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            showToast("Error when sign up! Please try again!");
+                        }
+                    }
                 });
 
     }

@@ -30,6 +30,7 @@ import com.example.chatss.models.ChatMessage;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -53,6 +54,7 @@ public class MainActivity2 extends BaseActivity {
     public static final int MY_REQUEST_NOTI_CODE = 0;
     private PreferenceManager preferenceManager;
     private TabLayoutMediator tabLayoutMediator;
+    private FirebaseAuth firebaseAuth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +76,7 @@ public class MainActivity2 extends BaseActivity {
 
         askNotificationPermission();
         preferenceManager = new PreferenceManager(getApplicationContext());
+        firebaseAuth = FirebaseAuth.getInstance();
         loadUserDetails();
         if (preferenceManager.getString(Constants.KEY_PRIVATE_KEY) == null){
             binding.viewPaper.setVisibility(View.GONE);
@@ -217,6 +220,7 @@ public class MainActivity2 extends BaseActivity {
             return;
 
         }
+        firebaseAuth.signOut();
         showToast("Signing out...");
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         DocumentReference documentReference = database.collection(Constants.KEY_COLLECTION_USERS).document(

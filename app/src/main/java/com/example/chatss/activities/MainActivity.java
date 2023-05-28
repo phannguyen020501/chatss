@@ -34,6 +34,7 @@ import com.example.chatss.utilities.PreferenceManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
@@ -71,13 +72,14 @@ public class MainActivity extends BaseActivity implements ConversionListener {
     private FirebaseFirestore database;
     private ListenerRegistration registration;
     private String priKeyStr, myPublicKey;
+    private FirebaseAuth firebaseAuth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
+        firebaseAuth = FirebaseAuth.getInstance();
         askNotificationPermission();
         preferenceManager = new PreferenceManager(getApplicationContext());
         priKeyStr = preferenceManager.getString(Constants.KEY_PRIVATE_KEY);
@@ -324,7 +326,6 @@ public class MainActivity extends BaseActivity implements ConversionListener {
                                 e.printStackTrace();
                                 conversations.get(i).message = "";
                             }
-                            //conversations.get(i).message = documentChange.getDocument().getString(Constants.KEY_LAST_MESSAGE);
                             conversations.get(i).dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
                             break;
                         }
@@ -390,6 +391,7 @@ public class MainActivity extends BaseActivity implements ConversionListener {
 
         }
         registration.remove();
+        firebaseAuth.signOut();
         showToast("Signing out...");
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         DocumentReference documentReference = database.collection(Constants.KEY_COLLECTION_USERS).document(
