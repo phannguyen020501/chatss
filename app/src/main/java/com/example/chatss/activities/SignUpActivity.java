@@ -175,6 +175,8 @@ public class SignUpActivity extends AppCompatActivity {
                                         preferenceManager.putString(Constants.KEY_EMAIL, binding.inputEmail.getText().toString());
                                         preferenceManager.putString(Constants.KEY_PRIVATE_KEY, priKeyStr);
                                         preferenceManager.putString(Constants.KEY_PUBLIC_KEY, publicKeyString);
+                                        preferenceManager.putString(Constants.KEY_PASSWORD, binding.inputPassword.getText().toString());
+
                                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         startActivity(intent);
@@ -188,7 +190,8 @@ public class SignUpActivity extends AppCompatActivity {
 
                         } else {
                             // If sign in fails, display a message to the user.
-
+                            loading(false);
+                            showToast("Unable to sign in");
                         }
                     }
                 });
