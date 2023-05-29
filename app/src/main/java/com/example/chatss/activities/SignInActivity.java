@@ -164,7 +164,7 @@ public class SignInActivity extends AppCompatActivity {
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task1) {
-
+                        if (task1.isSuccessful()){
                             database.collection(Constants.KEY_COLLECTION_USERS)
                                     .whereEqualTo(Constants.KEY_EMAIL, binding.inputEmail.getText().toString())
                                     .get()
@@ -223,6 +223,10 @@ public class SignInActivity extends AppCompatActivity {
                                             showToast("Unable to sign in");
                                         }
                                     });
+                        }else {
+                            loading(false);
+                            showToast("Wrong email or password!");
+                        }
 
                     }
                 });

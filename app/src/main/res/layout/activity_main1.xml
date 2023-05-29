@@ -59,6 +59,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_16sdp"
         android:background="@drawable/background_content_bottom"
+        app:tabTextAppearance="@style/CustomTabTextAppearance"
+        android:paddingTop="@dimen/_7sdp"
+        app:tabGravity="fill"
+        app:tabMaxWidth="0dp"
+        app:tabMode="fixed"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageProfile">
@@ -87,7 +92,8 @@
         android:gravity="center_vertical"
         android:background="@color/white"
         app:layout_constraintTop_toBottomOf="@id/tabLayout"
-        android:visibility="gone">
+        android:visibility="gone"
+        >
 
         <TextView
             android:id="@+id/textContent"
@@ -98,15 +104,16 @@
             android:gravity="center"
             android:text="You are logged in on a new device"
             android:textColor="@color/primary"
-            android:textSize="@dimen/_20sdp" />
+            android:textSize="@dimen/_22ssp" />
 
         <TextView
             android:id="@+id/textFormat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_margin="10dp"
+            android:layout_margin="@dimen/_10sdp"
             android:gravity="center"
+            android:textSize="@dimen/_12ssp"
             android:text="Go to the device that has been logged in and scan the QR to receive the key" />
 
         <Button
@@ -114,8 +121,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_margin="10dp"
+            android:layout_marginStart="@dimen/_20sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginEnd="@dimen/_20sdp"
+            android:layout_marginBottom="@dimen/_10sdp"
             android:backgroundTint="#0F9D58"
+            android:paddingLeft="@dimen/_10sdp"
+            android:paddingRight="@dimen/_10sdp"
+            android:paddingTop="@dimen/_5sdp"
+            android:paddingBottom="@dimen/_5sdp"
+            android:textSize="@dimen/_12ssp"
             android:text="Scan" />
 
     </LinearLayout>

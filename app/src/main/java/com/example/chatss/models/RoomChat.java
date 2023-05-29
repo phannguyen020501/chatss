@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class RoomChat implements Serializable {
-    public String id,name,lastMessage, dateTime;
+    public String id,name,lastMessage, dateTime, image;
     public Date dateObject;
     public String senderName;
 

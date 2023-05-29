@@ -7,11 +7,11 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 
 import com.example.chatss.adapter.UsersGroupAdapter;
 import com.example.chatss.databinding.ActivityCreateGroupBinding;
@@ -53,7 +53,7 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
         setListener();
         getUsers();
         createGroup();
-        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        binding.searchView.setOnQueryTextListener(new android.widget.SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if(!TextUtils.isEmpty(query.trim())){
@@ -75,6 +75,28 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
             }
         });
     }
+//    SearchView.OnQueryTextListener() {
+//        @Override
+//        public boolean onQueryTextSubmit(String query) {
+//            if(!TextUtils.isEmpty(query.trim())){
+//                searchUsers(query);
+//            }else{
+//                getUsers();
+//            }
+//            return false;
+//        }
+//
+//        @Override
+//        public boolean onQueryTextChange(String newText) {
+//            if(!TextUtils.isEmpty(newText.trim())){
+//                searchUsers(newText);
+//            }else{
+//                getUsers();
+//            }
+//            return false;
+//        }
+//    }
+
 
     private void initData() {
         CollectionReference collection = database.collection("RoomChat");

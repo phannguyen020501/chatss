@@ -81,8 +81,13 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.UserVi
 //
 //                        }
 //                    });
+            if(roomChat.image != null){
+                binding.imageProfile.setImageBitmap(getUserImage(roomChat.image));
+            }
             binding.textName.setText(roomChat.name);
+            if (roomChat.senderName != null)
             binding.textEmail.setText(roomChat.senderName +": " + roomChat.lastMessage);
+            else binding.textEmail.setText(roomChat.lastMessage);
             binding.getRoot().setOnClickListener(v -> roomChatListener.onRoomChatClicked(roomChat));
         }
     }

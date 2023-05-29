@@ -170,6 +170,56 @@ public class GroupFragment extends Fragment implements RoomChatListener {
                         showToast("Error when get list group");
                     }
                 });
+        database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom")
+                        .get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()){
+                                for (DocumentSnapshot documentSnapshot : task.getResult()){
+                                    database.collection("RoomChat").document(documentSnapshot.getId())
+                                            .get().addOnCompleteListener(task1 -> {
+                                                if (task1.isSuccessful()){
+                                                    Boolean isSame = false;
+                                                    DocumentSnapshot documentSnapshot1 = task1.getResult();
+                                                    RoomChat roomChat = new RoomChat();
+                                                    roomChat.name = documentSnapshot1.getString(Constants.KEY_NAME);
+                                                    roomChat.id = documentSnapshot1.getString("id");
+                                                    roomChat.lastMessage = documentSnapshot1.getString("lastMessage");
+                                                    roomChat.dateObject = documentSnapshot1.getDate(Constants.KEY_TIMESTAMP);
+                                                    roomChat.senderName = documentSnapshot1.getString("senderName");
+                                                    //Toast.makeText(getApplicationContext(),roomChat.lastMessage, Toast.LENGTH_SHORT).show();
+                                                    for (int i = 0; i < roomChats.size(); i++){
+                                                        if (roomChats.get(i).id.equals(roomChat.id)){
+                                                            isSame = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!isSame){
+                                                        roomChats.add(roomChat);
+                                                        Collections.sort(roomChats, (obj1, obj2)->{
+                                                            if (obj1.dateObject == null && obj2.dateObject == null) {
+                                                                return 0; // Cả hai đều null, coi như bằng nhau
+                                                            } else if (obj1.dateObject == null) {
+                                                                return 1; // obj1 là null, đặt obj2 trước
+                                                            } else if (obj2.dateObject == null) {
+                                                                return -1; // obj2 là null, đặt obj1 trước
+                                                            } else {
+                                                                return obj2.dateObject.compareTo(obj1.dateObject);
+                                                            }
+                                                        });
+                                                        chatRoomAdapter.notifyDataSetChanged();
+                                                        binding.conversationRecyclerView.smoothScrollToPosition(0);
+                                                        binding.conversationRecyclerView.setAdapter(chatRoomAdapter);
+                                                        binding.conversationRecyclerView.setVisibility(View.VISIBLE);
+                                                        binding.progressBar.setVisibility(View.GONE);
+                                                    }
+
+
+                                                }
+                                            });
+                                }
+                            }else {
+                                showToast("Error when get list group 1");
+                            }
+                });
         database.collection("RoomChat")
                 .addSnapshotListener((value, error) -> {
 
@@ -196,6 +246,8 @@ public class GroupFragment extends Fragment implements RoomChatListener {
                                         roomChats.get(i).lastMessage = documentChange.getDocument().getString("lastMessage");
                                         roomChats.get(i).dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
                                         roomChats.get(i).senderName = documentChange.getDocument().getString("senderName");
+                                        roomChats.get(i).image = documentChange.getDocument().getString("image");
+                                        roomChats.get(i).name = documentChange.getDocument().getString("name");
                                         break;
                                     }
                                 }

@@ -14,8 +14,8 @@
         layout="@layout/item_image_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginLeft="@dimen/_16sdp"
+        android:layout_marginRight="@dimen/_16sdp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageBack"
@@ -43,11 +43,11 @@
                 android:id="@+id/text_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="@dimen/_15sdp"
                 android:gravity="center"
                 android:text="Member"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="@dimen/_20ssp"
                 android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
