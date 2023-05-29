@@ -1,38 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="deploymentTargetDropDown">
-<<<<<<< HEAD
     <targetSelectedWithDropDown>
-=======
-    <targetsSelectedWithDialog>
->>>>>>> 6c33858ff1739aa40bd91e44b4066d6054c52259
       <Target>
         <type value="QUICK_BOOT_TARGET" />
         <deviceKey>
           <Key>
             <type value="VIRTUAL_DEVICE_PATH" />
-<<<<<<< HEAD
-            <value value="C:\Users\admin\.android\avd\Pixel_4_API_30.avd" />
+            <value value="C:\Users\admin\.android\avd\Nexus_5X_API_30.avd" />
           </Key>
         </deviceKey>
       </Target>
     </targetSelectedWithDropDown>
-    <timeTargetWasSelectedWithDropDown value="2023-05-27T04:24:28.327968700Z" />
-=======
-            <value value="C:\Users\hoanl\.android\avd\Pixel_2_XL_API_32_1.avd" />
-          </Key>
-        </deviceKey>
-      </Target>
-      <Target>
-        <type value="QUICK_BOOT_TARGET" />
-        <deviceKey>
-          <Key>
-            <type value="VIRTUAL_DEVICE_PATH" />
-            <value value="C:\Users\hoanl\.android\avd\Pixel_2_XL_API_32_2_1.avd" />
-          </Key>
-        </deviceKey>
-      </Target>
-    </targetsSelectedWithDialog>
->>>>>>> 6c33858ff1739aa40bd91e44b4066d6054c52259
+    <timeTargetWasSelectedWithDropDown value="2023-05-29T09:27:08.103119200Z" />
   </component>
 </project>
