@@ -55,7 +55,7 @@
                 android:textSize="@dimen/_13ssp" />
 
 
-            <ImageView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
@@ -64,6 +64,7 @@
                 android:background="@color/white"
                 android:layout_marginStart="@dimen/_4sdp"
                 android:id="@+id/imgChat"
+                app:shapeAppearanceOverlay="@style/card"
                 android:visibility="visible"/>
         </LinearLayout>
 
@@ -76,6 +77,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_4sdp"
         android:textColor="@color/secondary_text"
+        android:layout_marginStart="@dimen/_6sdp"
         android:textSize="@dimen/_8ssp"
         app:layout_constraintStart_toStartOf="@id/chat_content"
         app:layout_constraintTop_toBottomOf="@id/chat_content"/>
@@ -84,6 +86,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_4sdp"
+        android:layout_marginStart="@dimen/_6sdp"
         android:textColor="@color/secondary_text"
         android:textSize="@dimen/_8ssp"
         app:layout_constraintStart_toStartOf="@id/chat_content"
