@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -19,15 +20,28 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.R;
 import com.example.chatss.databinding.ActivityChangePasswordBinding;
 import com.example.chatss.databinding.ActivityProfileBinding;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.util.Objects;
 
 public class ChangePasswordActivity extends BaseActivity {
@@ -38,6 +52,7 @@ public class ChangePasswordActivity extends BaseActivity {
     private DocumentReference documentReference ;
     private String currPass = null;
     private String newPass = null;
+    private FirebaseAuth firebaseAuth;
 
 
     @Override
@@ -50,49 +65,101 @@ public class ChangePasswordActivity extends BaseActivity {
 
         preferenceManager = new PreferenceManager((getApplicationContext()));
         db = FirebaseFirestore.getInstance();
+        firebaseAuth = FirebaseAuth.getInstance();
         documentReference =
                 db.collection(Constants.KEY_COLLECTION_USERS).document(preferenceManager.getString(Constants.KEY_USED_ID));
         getCurrPass();
         setListener();
         onEditTextStatusChange();
-
     }
 
     private void onChangePassPressed(){
         loading(true);
-        documentReference.update(Constants.KEY_PASSWORD,newPass)
-                .addOnSuccessListener(v -> {
-                    loading(false);
-                    showToast("Change Password success");
-                    onBackPressed();
-                })
-                .addOnFailureListener(e -> {
-                    loading(false);
-                    showToast(e.getMessage());
-                    binding.inputNewPassword.getText().clear();
-                    binding.inputConfirmPassword.getText().clear();
-                    binding.inputCurrentPass.getText().clear();
-                    showToast("Change Password failure. Please try again!!");
+//        documentReference.update(Constants.KEY_PASSWORD,newPass)
+//                .addOnSuccessListener(v -> {
+//                    loading(false);
+//                    showToast("Change Password success");
+//                    onBackPressed();
+//                })
+//                .addOnFailureListener(e -> {
+//                    loading(false);
+//                    showToast(e.getMessage());
+//                    binding.inputNewPassword.getText().clear();
+//                    binding.inputConfirmPassword.getText().clear();
+//                    binding.inputCurrentPass.getText().clear();
+//                    showToast("Change Password failure. Please try again!!");
+//                });
+        firebaseAuth.getCurrentUser().updatePassword(newPass)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            // Xử lý khi thay đổi mật khẩu thành công
+                            PrivateKey privateKey = null;
+                            try {
+                                privateKey = ECCc.stringToPrivateKey(preferenceManager.getString(Constants.KEY_PRIVATE_KEY));
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                            PublicKey publicKey = null;
+                            try {
+                                publicKey = ECCc.stringToPublicKey(preferenceManager.getString(Constants.KEY_PUBLIC_KEY));
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                            try {
+                                ECCc.savePrivateKey2(getApplicationContext(), preferenceManager.getString(Constants.KEY_EMAIL), newPass, privateKey, publicKey);
+                            } catch (CertificateException e) {
+                                throw new RuntimeException(e);
+                            } catch (KeyStoreException e) {
+                                throw new RuntimeException(e);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            } catch (NoSuchAlgorithmException e) {
+                                throw new RuntimeException(e);
+                            } catch (SignatureException e) {
+                                throw new RuntimeException(e);
+                            } catch (NoSuchProviderException e) {
+                                throw new RuntimeException(e);
+                            } catch (InvalidKeyException e) {
+                                throw new RuntimeException(e);
+                            }
+                            loading(false);
+                            showToast("Change Password success");
+                            onBackPressed();
+                        } else {
+                            // Xử lý khi thay đổi mật khẩu không thành công
+                            loading(false);
+                            showToast(task.getResult().toString());
+                            binding.inputNewPassword.getText().clear();
+                            binding.inputConfirmPassword.getText().clear();
+                            binding.inputCurrentPass.getText().clear();
+                            showToast("Change Password failure. Please try again!!");
+                        }
+                    }
                 });
     }
 
     private void getCurrPass(){
-        documentReference
-                .get()
-                .addOnCompleteListener(task -> {
-                    if(task.isSuccessful() && task.getResult() != null ){
-                        DocumentSnapshot document = task.getResult();
-                        if (document != null && document.exists()) {
-                            if (document.getString(Constants.KEY_PASSWORD) != null) {
-                                currPass = document.getString(Constants.KEY_PASSWORD);
-                            }
-                        } else {
-                            Log.d("TAG", "User not exist!");
-                        }
-                    } else {
-                        showToast("Unable to get current password");
-                    }
-                });
+//        documentReference
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if(task.isSuccessful() && task.getResult() != null ){
+//                        DocumentSnapshot document = task.getResult();
+//                        if (document != null && document.exists()) {
+//                            if (document.getString(Constants.KEY_PASSWORD) != null) {
+//                                currPass = document.getString(Constants.KEY_PASSWORD);
+//                            }
+//                        } else {
+//                            Log.d("TAG", "User not exist!");
+//                        }
+//                    } else {
+//                        showToast("Unable to get current password");
+//                    }
+//                });
+        System.out.println("curren password");
+        currPass = preferenceManager.getString(Constants.KEY_PASSWORD);
+        System.out.println(currPass);
     }
     private void onEditTextStatusChange(){
         int colorFocus = ContextCompat.getColor(getApplicationContext(), R.color.primary_text);

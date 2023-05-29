@@ -45,6 +45,9 @@ public class QR_code extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        binding.okBtn.setOnClickListener(v ->{
+            onBackPressed();
+        });
     }
     Bitmap encodeAsBitmap(String str) throws WriterException {
         BitMatrix result;

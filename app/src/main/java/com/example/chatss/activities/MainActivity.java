@@ -34,6 +34,8 @@ import com.example.chatss.utilities.PreferenceManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
@@ -70,14 +72,17 @@ public class MainActivity extends BaseActivity implements ConversionListener {
     private RecentConversationsAdapter conversationsAdapter;
     private FirebaseFirestore database;
     private ListenerRegistration registration;
+
     private String priKeyStr, myPublicKey;
+    private FirebaseAuth firebaseAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
+        firebaseAuth = FirebaseAuth.getInstance();
         askNotificationPermission();
         preferenceManager = new PreferenceManager(getApplicationContext());
         priKeyStr = preferenceManager.getString(Constants.KEY_PRIVATE_KEY);
@@ -390,6 +395,8 @@ public class MainActivity extends BaseActivity implements ConversionListener {
 
         }
         registration.remove();
+
+
         showToast("Signing out...");
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         DocumentReference documentReference = database.collection(Constants.KEY_COLLECTION_USERS).document(
@@ -399,6 +406,7 @@ public class MainActivity extends BaseActivity implements ConversionListener {
         updates.put(Constants.KEY_FCM_TOKEN, FieldValue.delete());
         documentReference.update(updates)
                 .addOnSuccessListener(unused -> {
+                    firebaseAuth.signOut();
                     preferenceManager.clear();
                     startActivity(new Intent(getApplicationContext(), SignInActivity.class));
                     finish();

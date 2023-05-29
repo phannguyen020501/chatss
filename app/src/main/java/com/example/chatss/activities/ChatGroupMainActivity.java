@@ -22,6 +22,7 @@ import com.example.chatss.models.RoomChat;
 import com.example.chatss.models.User;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
@@ -39,6 +40,7 @@ import java.util.List;
 public class ChatGroupMainActivity extends BaseActivity implements RoomChatListener {
     private ActivityChatGroupMainBinding binding;
     private PreferenceManager preferenceManager;
+    private FirebaseAuth firebaseAuth;
     private float x1,x2;
     static final int MIN_DISTANCE = 150;
     //private FirebaseFirestore database;
@@ -48,6 +50,7 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
         binding = ActivityChatGroupMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         preferenceManager = new PreferenceManager(getApplicationContext());
+        firebaseAuth = FirebaseAuth.getInstance();
         init();
         loadUserDetails();
         getToken();
@@ -146,6 +149,7 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
     }
 
     private void signOut(){
+
         showToast("Signing out...");
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         DocumentReference documentReference = database.collection(Constants.KEY_COLLECTION_USERS).document(
@@ -155,6 +159,7 @@ public class ChatGroupMainActivity extends BaseActivity implements RoomChatListe
         updates.put(Constants.KEY_FCM_TOKEN, FieldValue.delete());
         documentReference.update(updates)
                 .addOnSuccessListener(unused -> {
+                    firebaseAuth.signOut();
                     preferenceManager.clear();
                     startActivity(new Intent(getApplicationContext(), SignInActivity.class));
                     finish();

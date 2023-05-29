@@ -239,6 +239,7 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                 .orderBy("name").startAt(s).endAt(s+"\uf8ff").get();
         Task<QuerySnapshot> y = database.collection(Constants.KEY_COLLECTION_USERS)
                 .orderBy("email").startAt(s).endAt(s+"\uf8ff").get();
+        List<String> listEmail = new ArrayList<>();
 
         Tasks.whenAllSuccess(x, y).addOnSuccessListener(task ->{
             loading(false);
@@ -256,19 +257,23 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
                     user.id = queryDocumentSnapshot.getId();
                     users.add(user);
+                    listEmail.add(user.email);
                 }
 
                 for(QueryDocumentSnapshot queryDocumentSnapshot : y.getResult()){
                     if(currentUserId.equals(queryDocumentSnapshot.getId())){
                         continue;
                     }
-                    User user = new User();
-                    user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
-                    user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
-                    user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
-                    user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
-                    user.id = queryDocumentSnapshot.getId();
-                    users.add(user);
+                    if(!listEmail.contains(queryDocumentSnapshot.getString(Constants.KEY_EMAIL))){
+                        User user = new User();
+                        user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                        user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
+                        user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
+                        user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
+                        user.id = queryDocumentSnapshot.getId();
+                        users.add(user);
+                    }
+
                 }
 
                 if(users.size() > 0){
