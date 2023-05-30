@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.R;
 import com.example.chatss.databinding.ActivityChangePasswordBinding;
 import com.example.chatss.databinding.ActivityProfileBinding;
@@ -32,6 +33,15 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.util.Objects;
 
 public class ChangePasswordActivity extends BaseActivity {
@@ -84,6 +94,35 @@ public class ChangePasswordActivity extends BaseActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
+                            PrivateKey privateKey = null;
+                            try {
+                                privateKey = ECCc.stringToPrivateKey(preferenceManager.getString(Constants.KEY_PRIVATE_KEY));
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                            PublicKey publicKey = null;
+                            try {
+                                publicKey = ECCc.stringToPublicKey(preferenceManager.getString(Constants.KEY_PUBLIC_KEY));
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                            try {
+                                ECCc.savePrivateKey2(getApplicationContext(), preferenceManager.getString(Constants.KEY_EMAIL), newPass, privateKey, publicKey);
+                            } catch (CertificateException e) {
+                                throw new RuntimeException(e);
+                            } catch (KeyStoreException e) {
+                                throw new RuntimeException(e);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            } catch (NoSuchAlgorithmException e) {
+                                throw new RuntimeException(e);
+                            } catch (SignatureException e) {
+                                throw new RuntimeException(e);
+                            } catch (NoSuchProviderException e) {
+                                throw new RuntimeException(e);
+                            } catch (InvalidKeyException e) {
+                                throw new RuntimeException(e);
+                            }
                             // Xử lý khi thay đổi mật khẩu thành công
                             loading(false);
                             showToast("Change Password success");
