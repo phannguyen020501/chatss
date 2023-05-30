@@ -17,12 +17,16 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -329,7 +333,6 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
                     if(task.isSuccessful() && task.getResult() != null){
                         for(QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
                             idUserCreate = queryDocumentSnapshot.getString("idUserCreate");
-
                         }
                     }
                     else {
@@ -360,122 +363,162 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
 
                 //Toast.makeText(getApplicationContext(), idUserCreate, Toast.LENGTH_SHORT).show();
                 if (idUserCreate.equals(preferenceManager.getString(Constants.KEY_USED_ID))) {
-                    String[] items = {"Add member", "Delete member","Group information", "Leave group"};
+                    // Sử dụng LayoutInflater để tạo ra view từ tệp tin layout tùy chỉnh
+                    LayoutInflater inflater = getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.custom_popup_menu, null);
+
+                    // Lấy tham chiếu đến các phần tử trong layout tùy chỉnh
+                    TextView t1 = dialogView.findViewById(R.id.t1);
+                    TextView t2 = dialogView.findViewById(R.id.t2);
+                    TextView t3 = dialogView.findViewById(R.id.t3);
+                    TextView t4 = dialogView.findViewById(R.id.t4);
+
                     AlertDialog.Builder builder = new AlertDialog.Builder(ChatGroupActivity.this);
-                    builder.setTitle("Select")
-                            .setItems(items, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    if (which == 0) {
-                                        // them thanh vien
-                                        Intent intent = new Intent(getApplicationContext(), AddMemberActivity.class);
-                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
-                                        startActivity(intent);
-                                    } else if (which == 1) {
-                                        // xoa thanh vien
-                                        Intent intent = new Intent(getApplicationContext(), DeleteMemberActivity.class);
-                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
-                                        startActivity(intent);
-                                    }else if (which == 2) {
-                                        // thong tin
-                                        Intent intent = new Intent(getApplicationContext(), SettingGroupActivity.class);
-                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
-                                        startActivity(intent);
+                    builder.setView(dialogView);
 
+                    final AlertDialog alertDialog = builder.create();
+                    t1.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent intent = new Intent(getApplicationContext(), AddMemberActivity.class);
+                            intent.putExtra(Constants.KEY_ROOM, roomChat);
+                            startActivity(intent);
+                            alertDialog.dismiss();
+                        }
+                    });
+                    t2.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            // xoa thanh vien
+                            Intent intent = new Intent(getApplicationContext(), DeleteMemberActivity.class);
+                            intent.putExtra(Constants.KEY_ROOM, roomChat);
+                            startActivity(intent);
+                            alertDialog.dismiss();
+                        }
+                    });
+                    t3.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            // thong tin
+                            Intent intent = new Intent(getApplicationContext(), SettingGroupActivity.class);
+                            intent.putExtra(Constants.KEY_ROOM, roomChat);
+                            startActivity(intent);
+                            alertDialog.dismiss();
+                        }
+                    });
+                    t4.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            // roi khoi nhom
+                            database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
+                                    .delete()
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            //Toast.makeText(getApplicationContext(), String.valueOf(roomChat.getId()), Toast.LENGTH_SHORT).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
 
-                                    } else if (which == 3) {
-                                        // roi khoi nhom
-                                        database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
-                                                .delete()
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        //Toast.makeText(getApplicationContext(), String.valueOf(roomChat.getId()), Toast.LENGTH_SHORT).show();
-                                                    }
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
+                                        }
+                                    });
+                            database.collection("Participants").document(String.valueOf(roomChat.getId())).collection("Users").document(preferenceManager.getString(Constants.KEY_USED_ID))
+                                    .delete()
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            alertDialog.dismiss();
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
 
-                                                    }
-                                                });
-                                        database.collection("Participants").document(String.valueOf(roomChat.getId())).collection("Users").document(preferenceManager.getString(Constants.KEY_USED_ID))
-                                                .delete()
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        onBackPressed();
-                                                    }
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
+                                        }
+                                    });
+                            onBackPressed();
+                        }
+                    });
 
-                                                    }
-                                                });
-                                        onBackPressed();
-                                    }
-                                }
-                            });
-                    builder.create();
-                    builder.show();
+                    alertDialog.show();
                 }
                 else{
+                    // Sử dụng LayoutInflater để tạo ra view từ tệp tin layout tùy chỉnh
+                    LayoutInflater inflater = getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.custom_popup_menu, null);
 
-                    String[] items = {"Add member","Change group name ", "Leave group"};
+                    // Lấy tham chiếu đến các phần tử trong layout tùy chỉnh
+                    TextView t1 = dialogView.findViewById(R.id.t1);
+                    TextView t2 = dialogView.findViewById(R.id.t2);
+                    View l2 = dialogView.findViewById(R.id.l2);
+                    TextView t3 = dialogView.findViewById(R.id.t3);
+                    TextView t4 = dialogView.findViewById(R.id.t4);
 
+                    t2.setVisibility(View.GONE);
+                    l2.setVisibility(View.GONE);
                     AlertDialog.Builder builder = new AlertDialog.Builder(ChatGroupActivity.this);
-                    builder.setTitle("Select")
-                            .setItems(items, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    if (which == 0) {
-                                        // them thanh vien
-                                        Intent intent = new Intent(getApplicationContext(), AddMemberActivity.class);
-                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
-                                        startActivity(intent);
-                                    }
-                                    else if (which == 1) {
-                                        // thong tin
-                                        Intent intent = new Intent(getApplicationContext(), SettingGroupActivity.class);
-                                        intent.putExtra(Constants.KEY_ROOM, roomChat);
-                                        startActivity(intent);
+                    builder.setView(dialogView);
 
+                    final AlertDialog alertDialog = builder.create();
+                    t1.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent intent = new Intent(getApplicationContext(), AddMemberActivity.class);
+                            intent.putExtra(Constants.KEY_ROOM, roomChat);
+                            startActivity(intent);
+                            alertDialog.dismiss();
+                        }
+                    });
+                    t3.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            // thong tin
+                            Intent intent = new Intent(getApplicationContext(), SettingGroupActivity.class);
+                            intent.putExtra(Constants.KEY_ROOM, roomChat);
+                            startActivity(intent);
+                            alertDialog.dismiss();
+                        }
+                    });
+                    t4.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            // roi khoi nhom
+                            database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
+                                    .delete()
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            //Toast.makeText(getApplicationContext(), String.valueOf(roomChat.getId()), Toast.LENGTH_SHORT).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
 
-                                    } else if (which == 2) {
-                                        // roi khoi nhom
-                                        database.collection("ListRoomUser").document(preferenceManager.getString(Constants.KEY_USED_ID)).collection("ListRoom").document(roomChat.getId())
-                                                .delete()
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        //Toast.makeText(getApplicationContext(), String.valueOf(roomChat.getId()), Toast.LENGTH_SHORT).show();
-                                                    }
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
+                                        }
+                                    });
+                            database.collection("Participants").document(String.valueOf(roomChat.getId())).collection("Users").document(preferenceManager.getString(Constants.KEY_USED_ID))
+                                    .delete()
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            alertDialog.dismiss();
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
 
-                                                    }
-                                                });
-                                        database.collection("Participants").document(String.valueOf(roomChat.getId())).collection("Users").document(preferenceManager.getString(Constants.KEY_USED_ID))
-                                                .delete()
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        onBackPressed();
-                                                    }
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
+                                        }
+                                    });
+                            onBackPressed();
+                        }
+                    });
 
-                                                    }
-                                                });
-                                        onBackPressed();
-                                    }
-                                }
-                            });
-                    builder.create();
-                    builder.show();
+                    alertDialog.show();
+
                 }
             }
 
@@ -579,7 +622,19 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
 
     @Override
     protected void onResume() {
-        loadReceiverDetails();
+        database.collection("RoomChat")
+                .whereEqualTo("id", roomChat.id)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful() && task.getResult() != null){
+                        for(QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
+                            roomChat.name = queryDocumentSnapshot.getString("name");
+                            binding.textName.setText(roomChat.name);
+
+                            }
+                    }
+                });
+//        loadReceiverDetails();
         super.onResume();
     }
 

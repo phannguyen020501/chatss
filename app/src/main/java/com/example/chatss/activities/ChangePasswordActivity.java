@@ -3,13 +3,13 @@ package com.example.chatss.activities;
 import static com.example.chatss.R.color.black;
 import static com.example.chatss.utilities.Constants.hideSoftKeyboard;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;

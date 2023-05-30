@@ -34,46 +34,55 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/imageBack" />
 
-<LinearLayout
-    android:id="@+id/nameGroup"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/background_input"
-    android:orientation="horizontal"
-    android:layout_marginLeft="10dp"
-    android:layout_marginRight="10dp"
-    android:layout_marginTop="15dp"
-    app:layout_constraintTop_toBottomOf="@id/textView"
-    app:layout_constraintBottom_toTopOf="@+id/searchFrame">
-    <ImageView
-        android:id="@+id/imgchitiet"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="15dp"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:src="@drawable/people">
-
-    </ImageView>
-    <EditText
-        android:hint="Your group name"
-        android:id="@+id/edtCreateGroup"
-        android:background="@color/input_background"
+    <LinearLayout
+        android:id="@+id/nameGroup"
         android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_marginLeft="15dp"
-        android:layout_height="match_parent"/>
-    <Button
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/white"
-        android:text="Create"
-        android:textSize="@dimen/_11sdp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="@dimen/_5sdp"
+        android:layout_marginTop="@dimen/_15sdp"
+        android:layout_marginStart="@dimen/_15sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:background="@drawable/background_input"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/_10sdp"
+        app:layout_constraintBottom_toTopOf="@+id/searchFrame"
+        app:layout_constraintEnd_toStartOf="@+id/btnCreateGroup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textView">
+
+        <ImageView
+            android:id="@+id/imgchitiet"
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:src="@drawable/people">
+
+        </ImageView>
+
+        <EditText
+            android:id="@+id/edtCreateGroup"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/_10sdp"
+            android:layout_weight="1"
+            android:textSize="@dimen/_12ssp"
+            android:background="@color/input_background"
+            android:hint="Your group name" />
+
+    </LinearLayout>
+
+    <Button
         android:id="@+id/btnCreateGroup"
+        android:layout_width="@dimen/_75sdp"
+        android:layout_height="@dimen/_38sdp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginEnd="@dimen/_10sdp"
         android:enabled="false"
-        android:layout_gravity="center_horizontal"/>
-</LinearLayout>
+        android:text="Create"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_11sdp"
+        app:layout_constraintBottom_toBottomOf="@+id/nameGroup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/nameGroup" />
 
     <FrameLayout
         android:id="@+id/searchFrame"
@@ -91,10 +100,10 @@
         <SearchView
             android:id="@+id/searchView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-
             android:iconifiedByDefault="false"
+            android:textAppearance="@style/CustomTabTextAppearance"
             android:queryHint="Search Here"
             app:iconifiedByDefault="false"
             app:layout_constraintEnd_toEndOf="parent"

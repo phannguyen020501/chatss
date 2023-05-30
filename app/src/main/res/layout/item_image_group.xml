@@ -16,41 +16,32 @@
             android:id="@+id/cardview_namegroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="15dp"
-            app:cardElevation="10dp"
+            android:layout_marginTop="@dimen/_28sdp"
+            app:cardCornerRadius="@dimen/_10sdp"
+            app:cardElevation="@dimen/_7sdp"
             app:cardUseCompatPadding="true"
             card_view:cardCornerRAdius="5dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="23dp"
+                android:layout_marginTop="@dimen/_20sdp"
                 android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/text_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="15dp"
+                    android:layout_marginTop="@dimen/_12sdp"
                     android:gravity="center"
                     android:textColor="@color/black"
-                    android:textSize="20sp"
+                    android:textSize="@dimen/_20sdp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:layout_marginBottom="10dp"
-                    android:gravity="center"
-                    android:text=""
-                    android:textColor="#5C5A5A"
-                    android:textSize="13sp"
-                    android:textStyle="normal" />
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
+                    android:layout_height="@dimen/_1sdp"
                     android:background="#79D6D1D1" />
 
                 <LinearLayout
@@ -78,11 +69,11 @@
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageProfile"
-        android:layout_width="98dp"
-        android:layout_height="98dp"
+        android:layout_width="@dimen/_75sdp"
+        android:layout_height="@dimen/_75sdp"
         android:layout_centerHorizontal="true"
-        android:elevation="15dp"
-        android:padding="5dp"
+        app:cardCornerRadius="@dimen/_10sdp"
+        app:cardElevation="@dimen/_7sdp"
 
         android:scaleType="centerCrop"
         android:src="@drawable/chatnhom"
@@ -93,11 +84,9 @@
         android:layout_height="@dimen/_20sdp"
         android:layout_alignBottom="@+id/imageProfile"
         android:layout_alignEnd="@id/imageProfile"
-        android:elevation="15dp"
+        android:elevation="@dimen/_7sdp"
         android:src="@drawable/ic_photo_camera"
         android:background="@drawable/background_image"
-        android:layout_marginEnd="@dimen/_5sdp"
-        android:layout_marginBottom="@dimen/_5sdp"
         />
 
 </RelativeLayout>

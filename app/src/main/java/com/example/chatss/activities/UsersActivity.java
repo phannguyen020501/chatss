@@ -126,9 +126,7 @@ public class UsersActivity extends BaseActivity implements UserListener {
             return;
         }
         if (value != null) {
-
             for (DocumentChange documentChange : value.getDocumentChanges()) {
-
                 String userId = documentChange.getDocument().getId();
                 if (preferenceManager.getString(Constants.KEY_USED_ID) != null){
                     if (preferenceManager.getString(Constants.KEY_USED_ID).equals(userId)){
@@ -224,11 +222,13 @@ public class UsersActivity extends BaseActivity implements UserListener {
                     user.id = queryDocumentSnapshot.getId();
 //                    users.add(user);
 //                    listEmail.add(user.email);
+
                     user.publicKey = queryDocumentSnapshot.getString(Constants.KEY_PUBLIC_KEY);
                     if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
                         user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
                     }
-                    if (!users.contains(user)) users.add(user);
+                    users.add(user);
+                    listEmail.add(user.email);
                 }
 
                 for(QueryDocumentSnapshot queryDocumentSnapshot : y.getResult()){
@@ -245,6 +245,7 @@ public class UsersActivity extends BaseActivity implements UserListener {
                     if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
                         user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
                     }
+
                     if (!users.contains(user)) users.add(user);
                 }
 

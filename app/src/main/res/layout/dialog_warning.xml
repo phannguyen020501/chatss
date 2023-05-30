@@ -14,8 +14,8 @@
         android:layout_marginBottom="@dimen/_4sdp">
 
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="@dimen/_48sdp"
+            android:layout_height="@dimen/_48sdp"
             android:src="@drawable/ic_warning" />
 
         <TextView

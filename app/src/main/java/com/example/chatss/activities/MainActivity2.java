@@ -19,6 +19,7 @@ import android.util.Base64;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.chatss.ECC.ECCc;
 import com.example.chatss.R;
 import com.example.chatss.adapter.ChatViewPagerAdapter;
 import com.example.chatss.adapter.RecentConversationsAdapter;
@@ -29,7 +30,9 @@ import com.example.chatss.fragment.IndivisualFragment;
 import com.example.chatss.models.ChatMessage;
 import com.example.chatss.utilities.Constants;
 import com.example.chatss.utilities.PreferenceManager;
+import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -42,6 +45,15 @@ import com.journeyapps.barcodescanner.ScanOptions;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,12 +65,12 @@ public class MainActivity2 extends BaseActivity {
     public static final int MY_REQUEST_NOTI_CODE = 0;
     private PreferenceManager preferenceManager;
     private TabLayoutMediator tabLayoutMediator;
+    private FirebaseAuth firebaseAuth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMain1Binding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
 
 
         tabLayoutMediator = new TabLayoutMediator(binding.tabLayout,binding.viewPaper,(tab, position) -> {
@@ -74,6 +86,7 @@ public class MainActivity2 extends BaseActivity {
 
         askNotificationPermission();
         preferenceManager = new PreferenceManager(getApplicationContext());
+        firebaseAuth = FirebaseAuth.getInstance();
         loadUserDetails();
         if (preferenceManager.getString(Constants.KEY_PRIVATE_KEY) == null){
             binding.viewPaper.setVisibility(View.GONE);
@@ -119,6 +132,14 @@ public class MainActivity2 extends BaseActivity {
                             preferenceManager.putString(Constants.KEY_PRIVATE_KEY, privateKey);
                             binding.textContent.setText("Get Data Successful");
 
+                            //save in new device
+                            PrivateKey privateKeyObj = ECCc.stringToPrivateKey(preferenceManager.getString(Constants.KEY_PRIVATE_KEY));
+                            PublicKey publicKeyObj = ECCc.stringToPublicKey(preferenceManager.getString(Constants.KEY_PUBLIC_KEY));
+                            ECCc.savePrivateKey2(getApplicationContext(),
+                                    preferenceManager.getString(Constants.KEY_EMAIL),
+                                    preferenceManager.getString(Constants.KEY_PASSWORD),
+                                    privateKeyObj, publicKeyObj
+                            );
                             binding.viewNoPrivateKey.setVisibility(View.GONE);
                             binding.viewPaper.setVisibility(View.VISIBLE);
 
@@ -128,7 +149,7 @@ public class MainActivity2 extends BaseActivity {
                             tabLayoutMediator.attach();
                         }
 
-                    } catch (JSONException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
@@ -226,6 +247,7 @@ public class MainActivity2 extends BaseActivity {
         updates.put(Constants.KEY_FCM_TOKEN, FieldValue.delete());
         documentReference.update(updates)
                 .addOnSuccessListener(unused -> {
+                    firebaseAuth.signOut();
                     preferenceManager.clear();
                     startActivity(new Intent(getApplicationContext(), SignInActivity.class));
                     finish();

@@ -23,9 +23,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.UserViewHolder>{
+public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.UserViewHolder> {
 
-    private  final List<RoomChat> roomChats;
+    private final List<RoomChat> roomChats;
     private final RoomChatListener roomChatListener;
 
     public ChatRoomAdapter(List<RoomChat> roomChats, RoomChatListener roomChatListener) {
@@ -54,15 +54,30 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.UserVi
         return roomChats.size();
     }
 
-    class UserViewHolder extends RecyclerView.ViewHolder{
+    class UserViewHolder extends RecyclerView.ViewHolder {
         ItemContainerUserBinding binding;
 
-        UserViewHolder(ItemContainerUserBinding itemContainerUserBinding){
+        UserViewHolder(ItemContainerUserBinding itemContainerUserBinding) {
             super(itemContainerUserBinding.getRoot());
             binding = itemContainerUserBinding;
         }
 
-        void  setUserData(RoomChat roomChat){
+        void setUserData(RoomChat roomChat) {
+            FirebaseFirestore database = FirebaseFirestore.getInstance();
+            database.collection("RoomChat").whereEqualTo("id", roomChat.id).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    for (QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()) {
+                        roomChat.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                        roomChat.id = queryDocumentSnapshot.getString("id");
+                        roomChat.lastMessage = queryDocumentSnapshot.getString("lastMessage");
+                        if (!queryDocumentSnapshot.getString("image").equals(null))
+                            binding.imageProfile.setImageBitmap(getUserImage(queryDocumentSnapshot.getString("image")));
+                        binding.textName.setText(roomChat.name);
+                        binding.textEmail.setText(roomChat.lastMessage);
+                    }
+                } else {
+                }
+            });
 //            FirebaseFirestore database = FirebaseFirestore.getInstance();
 //            database.collection("RoomChat")
 //                    .whereEqualTo("id", roomChat.id)
@@ -81,13 +96,18 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.UserVi
 //
 //                        }
 //                    });
+            if (roomChat.image != null) {
+                binding.imageProfile.setImageBitmap(getUserImage(roomChat.image));
+            }
             binding.textName.setText(roomChat.name);
-            binding.textEmail.setText(roomChat.senderName +": " + roomChat.lastMessage);
+            if (roomChat.senderName != null)
+                binding.textEmail.setText(roomChat.senderName + ": " + roomChat.lastMessage);
+            else binding.textEmail.setText(roomChat.lastMessage);
             binding.getRoot().setOnClickListener(v -> roomChatListener.onRoomChatClicked(roomChat));
         }
     }
 
-    private Bitmap getUserImage(String encodedImage){
+    private Bitmap getUserImage(String encodedImage) {
         byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }

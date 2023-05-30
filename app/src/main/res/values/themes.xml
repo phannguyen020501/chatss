@@ -9,4 +9,11 @@
     <style name="card">
         <item name="cornerSize">10%</item>
     </style>
+    <style name="CustomTabTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">@dimen/_11ssp</item>
+        <!-- Các thuộc tính văn bản khác -->
+    </style>
+    <style name="PopupMenuStyle" parent="@style/Widget.AppCompat.PopupMenu">
+        <item name="android:textSize">@dimen/_16ssp</item> <!-- Đặt kích thước chữ theo ý muốn (đơn vị sp) -->
+    </style>
 </resources>

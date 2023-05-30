@@ -7,11 +7,11 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 
 import com.example.chatss.adapter.UsersGroupAdapter;
 import com.example.chatss.databinding.ActivityCreateGroupBinding;
@@ -53,7 +53,7 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
         setListener();
         getUsers();
         createGroup();
-        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        binding.searchView.setOnQueryTextListener(new android.widget.SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if(!TextUtils.isEmpty(query.trim())){
@@ -75,6 +75,28 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
             }
         });
     }
+//    SearchView.OnQueryTextListener() {
+//        @Override
+//        public boolean onQueryTextSubmit(String query) {
+//            if(!TextUtils.isEmpty(query.trim())){
+//                searchUsers(query);
+//            }else{
+//                getUsers();
+//            }
+//            return false;
+//        }
+//
+//        @Override
+//        public boolean onQueryTextChange(String newText) {
+//            if(!TextUtils.isEmpty(newText.trim())){
+//                searchUsers(newText);
+//            }else{
+//                getUsers();
+//            }
+//            return false;
+//        }
+//    }
+
 
     private void initData() {
         CollectionReference collection = database.collection("RoomChat");
@@ -272,16 +294,18 @@ public class CreateGroupActivity extends AppCompatActivity implements UserListen
                     if(currentUserId.equals(queryDocumentSnapshot.getId())){
                         continue;
                     }
-                    User user = new User();
-                    user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
-                    user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
-                    user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
-                    user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
-                    user.id = queryDocumentSnapshot.getId();
-                    if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
-                        user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                    if(!listEmail.contains(queryDocumentSnapshot.getString(Constants.KEY_EMAIL))){
+                        User user = new User();
+                        user.name = queryDocumentSnapshot.getString(Constants.KEY_NAME);
+                        user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
+                        user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
+                        user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
+                        user.id = queryDocumentSnapshot.getId();
+                        if (queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)!= null){
+                            user.availability = Objects.requireNonNull(queryDocumentSnapshot.getLong(Constants.KEY_AVAILABILITY)).intValue();
+                        }
+                        users.add(user);
                     }
-                    users.add(user);
                 }
 
                 if(users.size() > 0){

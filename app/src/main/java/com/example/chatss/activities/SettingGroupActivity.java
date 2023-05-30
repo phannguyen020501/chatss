@@ -94,7 +94,7 @@ public class SettingGroupActivity extends BaseActivity implements UserListener {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             //Image Uri will not be null for RESULT_OK
-            Uri uri = null;
+            Uri uri;
             if (data != null) {
                 uri = data.getData();
                 // Use Uri object instead of File to avoid storage permissions
