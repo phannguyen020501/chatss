@@ -148,20 +148,8 @@ public class ChatGroupActivity extends BaseActivity implements DownloadImageList
         message.put(Constants.TYPE_MESSAGES_SEND, "text");
         message.put(Constants.KEY_IMAGE, preferenceManager.getString(Constants.KEY_IMAGE));
         //database.collection(Constants.KEY_COLLECTION_CHAT).add(message);
-        database.collection("RoomChat").document(roomChat.getId()).collection("messages").document(String.valueOf(cntMessage))
-                .set(message)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        initData();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-
-                    }
-                });
+        database.collection("RoomChat").document(roomChat.getId()).collection("messages")
+                .add(message);
         database.collection("RoomChat").document(roomChat.getId())
                 .update(
                         "senderName", preferenceManager.getString(Constants.KEY_NAME),
